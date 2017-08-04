@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">Flippi</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="nav_header_subtitle">CeX Scanner</string>
+
+    <string name="action_home">Home</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_saveditems">Favorites</string>
+    <string name="action_header_communicate">Communicate</string>
+    <string name="action_feedback">Feedback</string>
+
+    <string name="yes">Yes</string>
+    <string name="undo">Undo</string>
+
+    <string name="main_fragment_phone_image">Flippi logo</string>
+    <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below.</string>
+
+    <string name="search_hint">Search by title</string>
+    <string name="search_noresults">No results for %1$s.\nTry searching manually using the search bar above</string>
+    <string name="search_noresults_barcode">No results for barcode %1$s</string>
+    <string name="search_noresults_redo">Did you mean %1$s?</string>
+
+    <string name="search_error">Error while searching for %1$s.</string>
+    <string name="search_error_barcode">Error while searching for the barcode %1$s.</string>
+    <string name="search_try_again">Try again</string>
+
+    <string name="search_row_starred_undo">Title has been added to favorites</string>
+    <string name="search_row_unstarred_undo">Title has been removed from favorites</string>
+    <string name="search_row_unstarred_clear_undo">Favourites have been cleared</string>
+
+    <string name="search_row_header_results">Results</string>
+
+    <string name="search_row_sellprice">Sell Price: %1$s</string>
+    <string name="search_row_cashprice">Cash</string>
+    <string name="search_row_voucherprice">Voucher</string>
+
+    <string name="search_row_description_image">Search result image</string>
+    <string name="search_row_description_star">Star result</string>
+    <string name="search_row_description_coins">Price in cash</string>
+    <string name="search_row_description_ticket">Price in voucher</string>
+
+    <string name="saved_row_header_results">Favorites</string>
+    <string name="saved_row_footer_total">Total</string>
+
+    <string name="savedlist_noresults">No favorites</string>
+    <string name="savedlist_clear">Clear favorites</string>
+
+    <string name="settings_category_global">Global</string>
+    <string name="settings_category_about">About</string>
+
+    <string name="settings_preference_region">Region</string>
+    <string name="settings_preference_region_summary">Change region</string>
+
+    <string name="settings_preference_about_privacy">Privacy Policy</string>
+    <string name="settings_preference_about_privacy_summary">View our privacy policy</string>
+
+    <string name="settings_preference_about_cex">CeX</string>
+    <string name="settings_preference_about_cex_summary">All data in the app provided by CeX</string>
+
+    <string name="settings_preference_about_icons8">Icons8</string>
+    <string name="settings_preference_about_icons8_summary">Some icons in the app provided by Icons8</string>
+
+</resources>

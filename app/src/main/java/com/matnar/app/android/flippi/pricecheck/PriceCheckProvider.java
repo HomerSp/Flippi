@@ -1,0 +1,291 @@
+package com.matnar.app.android.flippi.pricecheck;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
+
+import com.matnar.app.android.flippi.db.PriceCheckDatabase;
+import com.matnar.app.android.flippi.pricecheck.provider.CeXPriceCheckProvider;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+
+public abstract class PriceCheckProvider {
+    private static final String TAG = "Flippi." + PriceCheckProvider.class.getSimpleName();
+
+    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, PriceCheckListener listener) {
+        getInformation(context, query, 0, database, listener);
+    }
+
+    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, PriceCheckListener listener) {
+        new PriceCheckTask(context, page, database, listener).execute(query);
+    }
+
+    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database);
+
+    public interface PriceCheckListener {
+        void onResult(PriceCheckItems result);
+    }
+
+    public static final class PriceCheckItems extends ArrayList<PriceCheckItem> implements Parcelable {
+        private boolean mHasError = false;
+        private int mPages = 0;
+
+        public PriceCheckItems() {
+            this(1, false);
+        }
+
+        public PriceCheckItems(int pages) {
+            this(pages, false);
+        }
+
+        public PriceCheckItems(int pages, boolean hasError) {
+            mPages = pages;
+            mHasError = hasError;
+        }
+
+        public int getPages() {
+            return mPages;
+        }
+
+        public boolean hasError() {
+            return mHasError;
+        }
+
+        public void setHasError() {
+            mHasError = true;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt((mHasError) ? 1 : 0);
+            dest.writeInt(mPages);
+            dest.writeInt(size());
+            for(PriceCheckItem item: this) {
+                item.writeToParcel(dest, flags);
+            }
+        }
+
+        public void addAll(Parcelable other) {
+            addAll((PriceCheckItems) other);
+        }
+
+        public void addAll(PriceCheckItems other) {
+            mHasError = other.mHasError;
+            mPages = other.mPages;
+            for(Parcelable p: other) {
+                add((PriceCheckItem) p);
+            }
+        }
+
+        public void sort(final String type) {
+            Collections.sort(this, new Comparator<PriceCheckItem>() {
+                public int compare(PriceCheckItem a, PriceCheckItem b) {
+                    if(type.equals("date")) {
+                        return a.getDate().compareTo(b.getDate());
+                    } else if(type.equals("name")) {
+                        return a.getName().compareTo(b.getName());
+                    }
+
+                    return 0;
+                }
+            });
+        }
+
+        PriceCheckItems(Parcel in) {
+            mHasError = in.readInt() == 1;
+            mPages = in.readInt();
+            int size = in.readInt();
+            for(int i = 0; i < size; i++) {
+                add(new PriceCheckItem(in));
+            }
+        }
+
+        public static final Parcelable.Creator<PriceCheckItems> CREATOR = new Parcelable.Creator<PriceCheckItems>() {
+            public PriceCheckItems createFromParcel(Parcel source) {
+                return new PriceCheckItems(source);
+            }
+
+            public PriceCheckItems[] newArray(int size) {
+                return new PriceCheckItems[size];
+            }
+        };
+    }
+
+    public static final class PriceCheckItem implements Parcelable {
+        private String mName;
+        private String mCategory;
+        private String mImage;
+        private String mSKU;
+
+        private String mSellPrice;
+        private String mBuyPrice;
+        private String mBuyVoucherPrice;
+
+        private String mProvider;
+        private PriceCheckRegion.Region mRegion;
+        private Date mDate;
+
+        private boolean mSaved = true;
+
+        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region) {
+            this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, (Date) null);
+        }
+
+        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, Date date) {
+            mName = name;
+            mCategory = category;
+            mSKU = sku;
+            mImage = image;
+            mSellPrice = sellPrice;
+            mBuyPrice = buyPrice;
+            mBuyVoucherPrice = buyVoucherPrice;
+            mProvider = provider;
+            mRegion = region;
+            mDate = date;
+        }
+
+        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db) {
+            this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, db, null);
+        }
+
+        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db, Date date) {
+            this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, date);
+
+            mSaved = PriceCheckDatabase.exists(db, this, 0);
+        }
+
+        public String getProvider() {
+            return mProvider;
+        }
+
+        public PriceCheckRegion.Region getRegion() {
+            return mRegion;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public String getCategory() {
+            return mCategory;
+        }
+
+        public String getImage() {
+            return mImage;
+        }
+
+        public String getSKU() {
+            return mSKU;
+        }
+
+        public String getSellPrice() {
+            return mSellPrice;
+        }
+
+        public String getBuyPrice() {
+            return mBuyPrice;
+        }
+
+        public String getBuyVoucherPrice() {
+            return mBuyVoucherPrice;
+        }
+
+        public Date getDate() {
+            return mDate;
+        }
+
+        public boolean isSaved() {
+            return mSaved;
+        }
+
+        public void setSaved(boolean b) {
+            mSaved = b;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(mName);
+            dest.writeString(mCategory);
+            dest.writeString(mImage);
+            dest.writeString(mSKU);
+            dest.writeString(mSellPrice);
+            dest.writeString(mBuyPrice);
+            dest.writeString(mBuyVoucherPrice);
+            dest.writeString(mProvider);
+            dest.writeString(PriceCheckRegion.toString(mRegion));
+        }
+
+        PriceCheckItem(Parcel in) {
+            mName = in.readString();
+            mCategory = in.readString();
+            mImage = in.readString();
+            mSKU = in.readString();
+            mSellPrice = in.readString();
+            mBuyPrice = in.readString();
+            mBuyVoucherPrice = in.readString();
+            mProvider = in.readString();
+            mRegion = PriceCheckRegion.fromString(in.readString());
+        }
+
+        public static final Parcelable.Creator<PriceCheckItem> CREATOR = new Parcelable.Creator<PriceCheckItem>() {
+            public PriceCheckItem createFromParcel(Parcel source) {
+                return new PriceCheckItem(source);
+            }
+
+            public PriceCheckItem[] newArray(int size) {
+                return new PriceCheckItem[size];
+            }
+        };
+    }
+
+    private static class PriceCheckTask extends AsyncTask<String, Void, PriceCheckItems> {
+        private WeakReference<Context> mContext;
+        private int mPage = 0;
+        private PriceCheckDatabase mDatabase;
+        private PriceCheckListener mListener;
+        private PriceCheckRegion.Region mRegion;
+
+        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, PriceCheckListener listener) {
+            mContext = context;
+            mPage = page;
+            mDatabase = database;
+            mListener = listener;
+            mRegion = PriceCheckRegion.getCurrent(context.get());
+        }
+
+
+        @Override
+        protected PriceCheckItems doInBackground(String... query) {
+            if(query.length == 0) {
+                return null;
+            }
+
+            PriceCheckProvider provider = new CeXPriceCheckProvider(mContext, mRegion);
+            return provider.lookup(query[0], mPage, mDatabase);
+        }
+
+        @Override
+        protected void onPostExecute(PriceCheckItems info) {
+            if(mListener != null) {
+                mListener.onResult(info);
+            }
+        }
+    }
+}

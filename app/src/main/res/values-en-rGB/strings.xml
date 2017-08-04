@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_saveditems">Favourites</string>
+
+    <string name="search_row_starred_undo">Title has been added to favourites</string>
+    <string name="search_row_unstarred_undo">Title has been removed from favourites</string>
+
+    <string name="saved_row_header_results">Favourites</string>
+    <string name="savedlist_noresults">No favourites</string>
+    <string name="savedlist_clear">Clear favourites</string>
+</resources>

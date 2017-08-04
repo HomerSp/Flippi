@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/background_light">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/search_row_padding_vertical"
+        android:paddingBottom="@dimen/search_row_padding_vertical"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
+
+        <ImageView
+            android:layout_width="@dimen/search_row_image_width"
+            android:layout_height="@dimen/search_row_image_height"
+            android:id="@+id/search_row_image"
+            android:scaleType="fitCenter"
+            android:src="@drawable/placeholder_image"
+            android:contentDescription="@string/search_row_description_image"
+            android:adjustViewBounds="true"/>
+
+        <LinearLayout
+            android:id="@+id/search_row_text_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/search_row_horizontal_margin"
+            android:layout_marginLeft="@dimen/search_row_horizontal_margin"
+            android:layout_toEndOf="@id/search_row_image"
+            android:layout_toRightOf="@id/search_row_image"
+            android:layout_alignTop="@id/search_row_image"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/search_row_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/search_row_title"
+                android:textStyle="bold"
+                android:ellipsize="marquee"
+                android:maxLines="1"/>
+
+            <TextView
+                android:id="@+id/search_row_category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/search_row_subtext"/>
+
+            <TextView
+                android:id="@+id/search_row_sellprice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/search_row_subtext"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/search_row_image"
+            android:layout_toRightOf="@id/search_row_image"
+            android:layout_alignBottom="@id/search_row_image"
+            android:layout_marginStart="@dimen/search_row_horizontal_margin"
+            android:layout_marginLeft="@dimen/search_row_horizontal_margin"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:gravity="bottom"
+            android:weightSum="7"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:layout_width="@dimen/search_row_cashprice_icons_size"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_coins"
+                    android:contentDescription="@string/search_row_description_coins"
+                    android:adjustViewBounds="true"
+                    android:visibility="@integer/search_row_cashprice_icons_visibility"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/search_row_horizontal_margin"
+                    android:layout_marginLeft="@dimen/search_row_horizontal_margin"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/search_row_cashprice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/search_row_cashprice"
+                        android:textStyle="bold"
+                        android:lines="1"
+                        android:ellipsize="marquee"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/search_row_cashprice"
+                        android:textSize="@dimen/search_row_subtext"/>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:layout_width="@dimen/search_row_cashprice_icons_size"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_ticket"
+                    android:contentDescription="@string/search_row_description_ticket"
+                    android:adjustViewBounds="true"
+                    android:visibility="@integer/search_row_cashprice_icons_visibility"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/search_row_horizontal_margin"
+                    android:layout_marginLeft="@dimen/search_row_horizontal_margin"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/search_row_voucherprice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/search_row_cashprice"
+                        android:textStyle="bold"
+                        android:lines="1"
+                        android:ellipsize="marquee"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/search_row_voucherprice"
+                        android:textSize="@dimen/search_row_subtext"/>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="bottom">
+
+                <ImageView
+                    android:id="@+id/search_row_star"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_gravity="end"
+                    android:src="@drawable/ic_star_empty"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="@dimen/search_row_star_padding"
+                    android:clickable="true"
+                    android:contentDescription="@string/search_row_description_star"/>
+
+            </RelativeLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+</FrameLayout>

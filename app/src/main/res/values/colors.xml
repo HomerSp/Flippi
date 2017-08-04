@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#F44336</color>
+    <color name="colorPrimaryDark">#C62828</color>
+    <color name="colorAccent">#3F51B5</color>
+
+    <color name="main_fragment_background">#ef5350</color>
+    <color name="main_fragment_text">#FFF</color>
+
+    <color name="search_text_hint_color">#ffb4af</color>
+
+    <color name="search_results_background">#F0F0F0</color>
+    <color name="search_results_row_divider">#A0A0A0</color>
+
+    <color name="search_row_background_disabled">#F2F2F2</color>
+    <color name="search_row_text_disabled">?android:attr/textColorTertiary</color>
+</resources>

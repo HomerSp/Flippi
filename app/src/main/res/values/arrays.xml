@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_preference_region_list">
+        <item>UK</item>
+        <item>US</item>
+    </string-array>
+    <string-array name="settings_preference_region_list_values">
+        <item>uk</item>
+        <item>us</item>
+    </string-array>
+
+    <string-array name="favorites_sort">
+        <item>Date added</item>
+        <item>Name</item>
+    </string-array>
+    <string-array name="favorites_sort_key">
+        <item>date</item>
+        <item>name</item>
+    </string-array>
+</resources>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <PreferenceCategory
+        android:title="@string/settings_category_global">
+
+        <ListPreference
+            android:key="region"
+            android:defaultValue="uk"
+            android:persistent="true"
+            android:title="@string/settings_preference_region"
+            android:summary="@string/settings_preference_region_summary"
+            android:entries="@array/settings_preference_region_list"
+            android:entryValues="@array/settings_preference_region_list_values"
+            android:dialogTitle="@string/settings_preference_region"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/settings_category_about">
+
+        <Preference android:title="@string/settings_preference_about_privacy"
+            android:summary="@string/settings_preference_about_privacy_summary">
+            <intent android:action="android.intent.action.VIEW"
+                android:data="http://matnar.com/privacy-policy.html" />
+        </Preference>
+
+        <Preference android:title="@string/settings_preference_about_cex"
+            android:summary="@string/settings_preference_about_cex_summary">
+            <intent android:action="android.intent.action.VIEW"
+                android:data="https://webuy.com/" />
+        </Preference>
+
+        <Preference android:title="@string/settings_preference_about_icons8"
+            android:summary="@string/settings_preference_about_icons8_summary">
+            <intent android:action="android.intent.action.VIEW"
+                android:data="https://icons8.com/" />
+        </Preference>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

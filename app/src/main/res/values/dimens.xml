@@ -1,0 +1,35 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="nav_header_vertical_spacing">16dp</dimen>
+    <dimen name="nav_header_height">160dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="shadow_size">4.0dp</dimen>
+
+    <dimen name="main_fragment_appname_margin_top">32dp</dimen>
+    <dimen name="main_fragment_appname_size">48sp</dimen>
+    <dimen name="main_fragment_phone_width">128dp</dimen>
+    <dimen name="main_fragment_vertical_margin">32dp</dimen>
+    <dimen name="main_fragment_search_padding">8dp</dimen>
+
+    <dimen name="search_row_header_height">48dp</dimen>
+    <dimen name="search_row_footer_shadow_height">24dp</dimen>
+
+    <dimen name="search_row_image_width">88dp</dimen>
+    <dimen name="search_row_image_height">108dp</dimen>
+    <dimen name="search_row_cashprice_icons_size">28dp</dimen>
+
+    <dimen name="search_row_padding_vertical">20dp</dimen>
+    <dimen name="search_row_vertical_margin">4dp</dimen>
+    <dimen name="search_row_horizontal_margin">8dp</dimen>
+
+    <dimen name="search_row_title">15sp</dimen>
+    <dimen name="search_row_subtext">11sp</dimen>
+    <dimen name="search_row_cashprice">17sp</dimen>
+    <dimen name="search_row_star_padding">2dp</dimen>
+
+    <dimen name="saved_row_footer_height">40dp</dimen>
+</resources>

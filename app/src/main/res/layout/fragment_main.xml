@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_fragment_background"
+    android:fitsSystemWindows="true"
+    tools:context=".fragment.main.MainFragment">
+
+    <RelativeLayout
+        android:id="@+id/ad_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
+
+        <com.google.android.gms.ads.AdView
+            xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:background="@color/main_fragment_background"
+            ads:adSize="SMART_BANNER"
+            ads:adUnitId="ca-app-pub-5638931008422581/8523728564">
+        </com.google.android.gms.ads.AdView>
+
+    </RelativeLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ad_layout">
+
+        <LinearLayout
+            android:id="@+id/content_main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/main_fragment_appname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/main_fragment_appname_margin_top"
+                android:textSize="@dimen/main_fragment_appname_size"
+                android:textColor="@color/main_fragment_text"
+                android:text="@string/app_name"/>
+
+            <ImageView
+                android:layout_width="@dimen/main_fragment_phone_width"
+                android:layout_height="@dimen/main_fragment_phone_width"
+                android:layout_marginTop="@dimen/main_fragment_vertical_margin"
+                android:src="@drawable/phone_image"
+                android:contentDescription="@string/main_fragment_phone_image"
+                android:scaleType="fitStart" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/main_fragment_vertical_margin"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <android.support.v7.widget.AppCompatEditText
+                    android:id="@+id/search_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:inputType="textAutoComplete"
+                    android:hint="@string/search_hint"
+                    android:textColorHint="@color/search_text_hint_color"
+                    android:textColor="@android:color/background_light"
+                    android:imeOptions="actionSearch"
+                    app:backgroundTint="@android:color/background_light"/>
+
+                <ImageView
+                    android:id="@+id/search_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/main_fragment_search_padding"
+                    android:src="@drawable/ic_search"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/main_fragment_vertical_margin"
+                android:layout_marginBottom="@dimen/main_fragment_vertical_margin"
+                android:text="@string/main_fragment_fastestway"
+                android:textColor="@android:color/background_light"/>
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
