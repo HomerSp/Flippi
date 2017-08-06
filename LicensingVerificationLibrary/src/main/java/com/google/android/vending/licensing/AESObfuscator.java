@@ -35,6 +35,7 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * An Obfuscator that uses AES to encrypt data.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class AESObfuscator implements Obfuscator {
     private static final String UTF8 = "UTF-8";
     private static final String KEYGEN_ALGORITHM = "PBEWITHSHAAND256BITAES-CBC-BC";
@@ -76,9 +77,7 @@ public class AESObfuscator implements Obfuscator {
         try {
             // Header is appended as an integrity check
             return Base64.encode(mEncryptor.doFinal((header + key + original).getBytes(UTF8)));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Invalid environment", e);
-        } catch (GeneralSecurityException e) {
+        } catch (UnsupportedEncodingException | GeneralSecurityException e) {
             throw new RuntimeException("Invalid environment", e);
         }
     }
@@ -97,11 +96,7 @@ public class AESObfuscator implements Obfuscator {
                         obfuscated);
             }
             return result.substring(header.length()+key.length(), result.length());
-        } catch (Base64DecoderException e) {
-            throw new ValidationException(e.getMessage() + ":" + obfuscated);
-        } catch (IllegalBlockSizeException e) {
-            throw new ValidationException(e.getMessage() + ":" + obfuscated);
-        } catch (BadPaddingException e) {
+        } catch (Base64DecoderException | IllegalBlockSizeException | BadPaddingException e) {
             throw new ValidationException(e.getMessage() + ":" + obfuscated);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Invalid environment", e);

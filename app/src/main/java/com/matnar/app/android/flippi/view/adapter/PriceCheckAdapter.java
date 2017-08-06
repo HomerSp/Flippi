@@ -371,8 +371,6 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             }
         } else if(holder instanceof FooterViewHolder) {
             ((FooterViewHolder) holder).setLoading(mIsLoadingMore);
-        } else if(holder instanceof LoadingViewHolder) {
-            // Nothing
         } else if(holder instanceof NoResultsViewHolder) {
             if(mIsSavedList) {
                 ((NoResultsViewHolder) holder).setQuery();

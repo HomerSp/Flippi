@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.text.DecimalFormat;
+
 public class PriceCheckRegion {
     public enum Region {
         RegionUnknown,
@@ -18,18 +20,18 @@ public class PriceCheckRegion {
         return fromString(region);
     }
 
-    public static String getPrice(Region region, String price) {
+    public static String getPrice(Region region, double price) {
         switch(region) {
             case RegionUK:
-                return "£" + price;
+                return "£" + new DecimalFormat("0.00").format(price);
             case RegionUS:
-                return "$" + price;
+                return "$" + new DecimalFormat("0.00").format(price);
         }
 
-        return price;
+        return new DecimalFormat("0.00").format(price);
     }
 
-    public static String getPrice(Context context, String price) {
+    public static String getPrice(Context context, double price) {
         return getPrice(getCurrent(context), price);
     }
 

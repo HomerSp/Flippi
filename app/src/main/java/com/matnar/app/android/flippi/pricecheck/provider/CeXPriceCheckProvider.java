@@ -132,9 +132,13 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
             return null;
         }
 
-        String sellPrice = getRegionalPrice(prices.get(0));
-        String buyPrice = getRegionalPrice(prices.get(1));
-        String buyVoucherPrice = getRegionalPrice(prices.get(2));
+        double sellPrice = getRegionalPrice(prices.get(0));
+        double buyPrice = getRegionalPrice(prices.get(1));
+        double buyVoucherPrice = getRegionalPrice(prices.get(2));
+
+        if(sellPrice == 0 || buyPrice == 0 || buyVoucherPrice == 0) {
+            return null;
+        }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
@@ -150,26 +154,26 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         sanitizer.parseUrl(product.select("div.productDetails div.btnSection > a").first().attr("abs:href"));
         String sku = sanitizer.getValue("id");
 
-        String sellPrice = getRegionalPrice(product.select("#Asellprice").first());
-        String buyPrice = getRegionalPrice(product.select("#Acashprice").first());
-        String buyVoucherPrice = getRegionalPrice(product.select("#Aexchprice").first());
+        double sellPrice = getRegionalPrice(product.select("#Asellprice").first());
+        double buyPrice = getRegionalPrice(product.select("#Acashprice").first());
+        double buyVoucherPrice = getRegionalPrice(product.select("#Aexchprice").first());
 
-        if(sellPrice.length() == 0 || buyPrice.length() == 0 || buyVoucherPrice.length() == 0) {
+        if(sellPrice == 0 || buyPrice == 0 || buyVoucherPrice == 0) {
             return null;
         }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
 
-    private String getRegionalPrice(Element row) {
+    private double getRegionalPrice(Element row) {
         if(row == null) {
-            return "";
+            return 0.0f;
         }
 
         int index = -1;
         String rowText = row.text();
         if(rowText.length() == 0) {
-            return "";
+            return 0.0f;
         }
 
         switch(mRegion) {
@@ -183,9 +187,9 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         }
 
         if(index < 0 || index >= rowText.length()) {
-            return "";
+            return 0.0f;
         }
 
-        return rowText.substring(index + 1);
+        return Double.parseDouble(rowText.substring(index + 1));
     }
 }

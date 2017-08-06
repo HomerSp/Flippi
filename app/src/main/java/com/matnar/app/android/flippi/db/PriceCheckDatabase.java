@@ -123,9 +123,9 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
                 String category = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CATEGORY));
                 String image = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_IMAGE));
                 String sku = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SKU));
-                String sellPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SELLPRICE));
-                String buyPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CASHPRICE));
-                String buyVoucherPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_VOUCHERPRICE));
+                double sellPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SELLPRICE)));
+                double buyPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CASHPRICE)));
+                double buyVoucherPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_VOUCHERPRICE)));
                 long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_DATE));
                 ret.add(new PriceCheckProvider.PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, new Date(timestamp * 1000L)));
             } catch(IllegalArgumentException e) {
@@ -393,9 +393,9 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
             values.put(COLUMN_NAME_IMAGE, item.getImage());
             values.put(COLUMN_NAME_SKU, item.getSKU());
             values.put(COLUMN_NAME_CATEGORY, item.getCategory());
-            values.put(COLUMN_NAME_SELLPRICE, item.getSellPrice());
-            values.put(COLUMN_NAME_CASHPRICE, item.getBuyPrice());
-            values.put(COLUMN_NAME_VOUCHERPRICE, item.getBuyVoucherPrice());
+            values.put(COLUMN_NAME_SELLPRICE, Double.toString(item.getSellPrice()));
+            values.put(COLUMN_NAME_CASHPRICE, Double.toString(item.getBuyPrice()));
+            values.put(COLUMN_NAME_VOUCHERPRICE, Double.toString(item.getBuyVoucherPrice()));
             values.put(COLUMN_NAME_DATE, System.currentTimeMillis() / 1000L);
 
             return values;

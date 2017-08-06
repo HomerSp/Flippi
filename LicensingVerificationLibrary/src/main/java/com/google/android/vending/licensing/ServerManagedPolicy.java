@@ -38,6 +38,7 @@ import java.util.Map;
  * Developers who need more fine grained control over their application's
  * licensing policy should implement a custom Policy.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ServerManagedPolicy implements Policy {
 
     private static final String TAG = "ServerManagedPolicy";
@@ -190,7 +191,7 @@ public class ServerManagedPolicy implements Policy {
             // No response or not parsable, expire immediately
             Log.w(TAG, "License retry timestamp (GT) missing, grace period disabled");
             retryUntil = "0";
-            lRetryUntil = 0l;
+            lRetryUntil = 0L;
         }
 
         mRetryUntil = lRetryUntil;
@@ -216,7 +217,7 @@ public class ServerManagedPolicy implements Policy {
             // No response or not parsable, expire immediately
             Log.w(TAG, "Licence retry count (GR) missing, grace period disabled");
             maxRetries = "0";
-            lMaxRetries = 0l;
+            lMaxRetries = 0L;
         }
 
         mMaxRetries = lMaxRetries;
@@ -255,7 +256,7 @@ public class ServerManagedPolicy implements Policy {
     }
 
     private Map<String, String> decodeExtras(String extras) {
-        Map<String, String> results = new HashMap<String, String>();
+        Map<String, String> results = new HashMap<>();
         try {
             Uri rawExtras = Uri.parse("http://google.com/?" + extras);
             for(String key: rawExtras.getQueryParameterNames()) {

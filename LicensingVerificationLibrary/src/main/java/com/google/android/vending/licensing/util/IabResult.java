@@ -23,11 +23,12 @@ package com.google.android.vending.licensing.util;
  * can also inquire whether a result is a success or a failure by
  * calling {@link #isSuccess()} and {@link #isFailure()}.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class IabResult {
-    int mResponse;
-    String mMessage;
+    private int mResponse;
+    private String mMessage;
 
-    public IabResult(int response, String message) {
+    IabResult(int response, String message) {
         mResponse = response;
         if (message == null || message.trim().length() == 0) {
             mMessage = IabHelper.getResponseDesc(response);

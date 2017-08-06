@@ -32,14 +32,6 @@ public class PriceCheckFilterSpinner extends AppCompatSpinner implements PriceCh
         super(context, attrs, defStyleAttr);
         init();
     }
-    public PriceCheckFilterSpinner(Context context, AttributeSet attrs, int defStyleAttr, int mode) {
-        super(context, attrs, defStyleAttr, mode);
-        init();
-    }
-    public PriceCheckFilterSpinner(Context context, AttributeSet attrs, int defStyleAttr, int mode, Resources.Theme popupTheme) {
-        super(context, attrs, defStyleAttr, mode, popupTheme);
-        init();
-    }
 
     @Override
     public void onItemClick(int pos, String name) {
@@ -74,7 +66,8 @@ public class PriceCheckFilterSpinner extends AppCompatSpinner implements PriceCh
         super.setAdapter(adapter);
         adapter.setOnItemClickListener(this);
     }
-    public void dismiss() {
+
+    private  void dismiss() {
         super.onDetachedFromWindow();
     }
 

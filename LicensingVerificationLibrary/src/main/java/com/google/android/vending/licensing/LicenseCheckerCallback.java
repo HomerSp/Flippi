@@ -32,6 +32,7 @@ package com.google.android.vending.licensing;
  * while in most cases Policy.NOT_LICENSED will call dontAllow and
  * Policy.LICENSED will Allow.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public interface LicenseCheckerCallback {
 
     /**

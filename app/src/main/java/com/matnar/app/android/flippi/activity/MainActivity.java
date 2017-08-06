@@ -59,20 +59,14 @@ public class MainActivity extends AppCompatActivity
 
     private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLGikFct+yG55/usMKwo/QM8/nRT7UVz753cWblRvJbb634POG8JwZ3UI8bXz2n72XHlk+/hnbXw//BUh8qk6ZMe1rkWR1Zavn64hFysilt4HtFRAOcqsIwg3Ic7eAJjIqssw3HlhIDAUAJnZ6j44Xy8WnoPuzColDkYBEaNP3Li9qcstLrj+bZ3owv6PyKJDQeB4V2qNXsTDRtKDGfcqtAOsoGzBx4pTGhBDco1HLW3fZ4Bl6N/5tLpvVQ7vxYdW3WusQ+Y8jlxcvyXrBdHwd4V5kgnLEhxVVOqmMEFvPtXDQP63eHo89hUAZFet6+cnxcTmoKJ4Qe9IAAB9iCbrwIDAQAB";
 
-    // Generate your own 20 random bytes, and put them here.
-    private static final byte[] SALT = new byte[] {
-            20, -32, 127, -50, -10, 108, 100, -128, 41, 32, -65, -12, 67, -125, 35, 9, 12, -76, -54,
-            98
-    };
-
     private IabHelper mBillingHelper;
     private Handler mLicenseHandler;
     private boolean mLicenseChecked = false;
     private boolean mAdFreeLicense = false;
     private List<OnLicenseCheckListener> mLicenseCheckListeners = new ArrayList<>();
 
-    private NavigationView mNavBar;
-    private AppBarLayout mAppBar;
+    private DrawerLayout mDrawer;
+    private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
     private FloatingActionButton mFAB;
     private FooterBarLayout mFooter;
@@ -89,8 +83,6 @@ public class MainActivity extends AppCompatActivity
 
     private PriceCheckDatabase mPriceCheckDatabase;
     private CategoryDatabase mCategoryDatabase;
-
-    private Handler mUIHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +108,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        mAppBar = (AppBarLayout) findViewById(R.id.appbar_layout);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
@@ -193,11 +184,11 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawer.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -239,6 +230,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        mDrawer.removeDrawerListener(mDrawerToggle);
 
         mPriceCheckDatabase.close();
 
@@ -424,7 +417,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
+    private void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
         if(mLicenseChecked) {
             listener.onLicenseCheck(mAdFreeLicense);
             return;
@@ -433,7 +426,7 @@ public class MainActivity extends AppCompatActivity
         mLicenseCheckListeners.add(listener);
     }
 
-    protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
+    private void doSearch(String query, boolean isBarcode, int cx, int cy) {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         if(currentFragment != null && currentFragment instanceof BarcodeResultFragment && currentFragment.isVisible()) {
             ((BarcodeResultFragment)currentFragment).doSearch(query, isBarcode);
@@ -461,19 +454,19 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected String getDeviceID() {
+    private String getDeviceID() {
         return PreferenceManager.getDefaultSharedPreferences(this).getString("uuid", UUID.randomUUID().toString());
     }
 
-    protected PriceCheckDatabase getPriceCheckDatabase() {
+    private PriceCheckDatabase getPriceCheckDatabase() {
         return mPriceCheckDatabase;
     }
 
-    protected CategoryDatabase getCategoryDatabase() {
+    private CategoryDatabase getCategoryDatabase() {
         return mCategoryDatabase;
     }
 
-    protected void showFab(boolean show) {
+    private void showFab(boolean show) {
         if(show && mFAB.getVisibility() != View.VISIBLE) {
             mFAB.show();
         } else if(!show && mFAB.getVisibility() == View.VISIBLE) {
@@ -481,13 +474,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void setToolbarScroll(boolean enable) {
+    private void setToolbarScroll(boolean enable) {
         AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
         params.setScrollFlags((enable) ? (AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS) : 0);
         mToolbar.setLayoutParams(params);
     }
 
-    protected void setFabIcon(final int res) {
+    private void setFabIcon(final int res) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
@@ -512,8 +505,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void setSearchQuery(String q) {
-        Log.d(TAG, "setSearchQuery " + q + " " + mSearchView + " - " + mSearchItem);
+    private void setSearchQuery(String q) {
         if(mSearchView == null) {
             return;
         }
@@ -527,7 +519,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected View setFooter(int resId) {
+    private View setFooter(int resId) {
         TypedArray arr = getTheme().obtainStyledAttributes(new int[] {R.attr.actionBarSize});
         final float translationY = -arr.getDimension(0, 0.0f);
 
@@ -562,7 +554,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void showClearFavorites(boolean show) {
+    private void showClearFavorites(boolean show) {
         if(mClearFavoritesItem == null) {
             mClearFavoritesItemVisible = show;
             return;
@@ -571,7 +563,7 @@ public class MainActivity extends AppCompatActivity
         mClearFavoritesItem.setVisible(show);
     }
 
-    protected void showSearchItem(boolean show) {
+    private void showSearchItem(boolean show) {
         if(mSearchItem == null) {
             mSearchItemVisible = show;
             return;
@@ -580,6 +572,7 @@ public class MainActivity extends AppCompatActivity
         mSearchItem.setVisible(show);
     }
 
+    @SuppressWarnings("unused")
     private class AppLicenseCheckerCallback implements LicenseCheckerCallback {
         public void allow(int policyReason) {
             if (isFinishing()) {
@@ -627,6 +620,7 @@ public class MainActivity extends AppCompatActivity
         void onLicenseCheck(boolean result);
     }
 
+    @SuppressWarnings("unused")
     public abstract static class MainActivityFragment extends Fragment {
         public MainActivityFragment() {
         }
@@ -692,6 +686,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @SuppressWarnings("unused")
     public abstract static class MainActivityPreferenceFragment extends PreferenceFragmentCompat {
         public MainActivityPreferenceFragment() {
         }

@@ -91,6 +91,7 @@
                     android:padding="@dimen/main_fragment_search_padding"
                     android:src="@drawable/ic_search"
                     android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search_hint"
                     android:clickable="true"/>
 
             </LinearLayout>

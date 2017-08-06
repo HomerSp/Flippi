@@ -23,6 +23,7 @@ import android.text.TextUtils;
 /**
  * ResponseData from licensing server.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ResponseData {
 
     public int responseCode;

@@ -357,14 +357,14 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                 continue;
             }
 
-            totalPrice += Double.parseDouble(item.getBuyPrice());
-            totalVoucherPrice += Double.parseDouble(item.getBuyVoucherPrice());
+            totalPrice += item.getBuyPrice();
+            totalVoucherPrice += item.getBuyVoucherPrice();
         }
 
         TextView totalPriceView = (TextView) mFooter.findViewById(R.id.search_total_cashprice);
-        totalPriceView.setText(PriceCheckRegion.getPrice(getContext(), new DecimalFormat("0.00").format(totalPrice)));
+        totalPriceView.setText(PriceCheckRegion.getPrice(getContext(), totalPrice));
 
         TextView totalVoucherPriceView = (TextView) mFooter.findViewById(R.id.search_total_voucherprice);
-        totalVoucherPriceView.setText(PriceCheckRegion.getPrice(getContext(), new DecimalFormat("0.00").format(totalVoucherPrice)));
+        totalVoucherPriceView.setText(PriceCheckRegion.getPrice(getContext(), totalVoucherPrice));
     }
 }

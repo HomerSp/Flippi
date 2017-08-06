@@ -22,6 +22,7 @@ import android.util.Log;
 /**
  * An wrapper for SharedPreferences that transparently performs data obfuscation.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 class PreferenceObfuscator {
 
     private static final String TAG = "PreferenceObfuscator";

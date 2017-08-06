@@ -29,6 +29,7 @@ package com.google.android.vending.licensing;
  * Access to the application is only allowed if a LICESNED response is.
  * received. All other responses (including RETRY) will deny access.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class StrictPolicy implements Policy {
 
     private int mLastResponse;

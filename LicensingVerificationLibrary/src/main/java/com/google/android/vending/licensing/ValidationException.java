@@ -20,12 +20,13 @@ package com.google.android.vending.licensing;
  * Indicates that an error occurred while validating the integrity of data managed by an
  * {@link Obfuscator}.}
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ValidationException extends Exception {
-    public ValidationException() {
+    ValidationException() {
       super();
     }
 
-    public ValidationException(String s) {
+    ValidationException(String s) {
       super(s);
     }
 

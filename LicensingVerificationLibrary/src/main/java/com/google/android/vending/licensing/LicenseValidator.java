@@ -32,6 +32,7 @@ import java.security.SignatureException;
  * Contains data related to a licensing request and methods to verify
  * and process the response.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 class LicenseValidator {
     private static final String TAG = "LicenseValidator";
 
@@ -103,14 +104,12 @@ class LicenseValidator {
                     handleInvalidResponse();
                     return;
                 }
-            } catch (NoSuchAlgorithmException e) {
+            } catch (NoSuchAlgorithmException | SignatureException e) {
                 // This can't happen on an Android compatible device.
                 throw new RuntimeException(e);
             } catch (InvalidKeyException e) {
                 handleApplicationError(LicenseCheckerCallback.ERROR_INVALID_PUBLIC_KEY);
                 return;
-            } catch (SignatureException e) {
-                throw new RuntimeException(e);
             } catch (Base64DecoderException e) {
                 Log.e(TAG, "Could not Base64-decode signature.");
                 handleInvalidResponse();
@@ -170,15 +169,15 @@ class LicenseValidator {
                 break;
             case ERROR_CONTACTING_SERVER:
                 Log.w(TAG, "Error contacting licensing server.");
-                handleResponse(Policy.RETRY, data);
+                handleResponse(Policy.RETRY, null);
                 break;
             case ERROR_SERVER_FAILURE:
                 Log.w(TAG, "An error has occurred on the licensing server.");
-                handleResponse(Policy.RETRY, data);
+                handleResponse(Policy.RETRY, null);
                 break;
             case ERROR_OVER_QUOTA:
                 Log.w(TAG, "Licensing server is refusing to talk to this device, over quota.");
-                handleResponse(Policy.RETRY, data);
+                handleResponse(Policy.RETRY, null);
                 break;
             case ERROR_INVALID_PACKAGE_NAME:
                 handleApplicationError(LicenseCheckerCallback.ERROR_INVALID_PACKAGE_NAME);
@@ -198,8 +197,8 @@ class LicenseValidator {
     /**
      * Confers with policy and calls appropriate callback method.
      *
-     * @param response
-     * @param rawData
+     * @param response Response code
+     * @param rawData Raw response data
      */
     private void handleResponse(int response, ResponseData rawData) {
         // Update policy data and increment retry counter (if needed)

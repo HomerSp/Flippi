@@ -20,9 +20,10 @@ package com.google.android.vending.licensing;
  * Policy used by {@link LicenseChecker} to determine whether a user should have
  * access to the application.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public interface Policy {
 
-    /**
+    /*
      * Change these values to make it more difficult for tools to automatically
      * strip LVL protection from your APK.
      */
