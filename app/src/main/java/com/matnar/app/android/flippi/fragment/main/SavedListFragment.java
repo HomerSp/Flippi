@@ -38,6 +38,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
     private PriceCheckProvider.PriceCheckItems mResults = new PriceCheckProvider.PriceCheckItems();
     private boolean mHaveResults = false;
+    private String mSort;
 
     private Snackbar mSnackbar = null;
 
@@ -90,6 +91,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
         if(savedInstanceState != null) {
             mResults.addAll(savedInstanceState.getParcelable("results"));
+            mSort = savedInstanceState.getString("sort");
             mHaveResults = savedInstanceState.getBoolean("have_results");
         }
 
@@ -170,29 +172,15 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setOnSortListener(new PriceCheckAdapter.OnSortListener() {
             @Override
             public void onSort(final String type) {
-                if(mResultsView.getVisibility() == View.VISIBLE) {
-                    mResultsView.clearAnimation();
-                    mResultsView.animate()
-                            .alpha(0.0f)
-                            .setDuration(mShortAnimationDuration)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    mResults.sort(type);
-                                    mResultsAdapter.notifyDataSetChanged();
-                                    mResultsView.clearAnimation();
-                                    mResultsView.animate()
-                                            .alpha(1.0f)
-                                            .setDuration(mShortAnimationDuration)
-                                            .setListener(null);
-                                }
-                            });
-                } else {
-                    mResults.sort(type);
-                    mResultsAdapter.notifyDataSetChanged();
-                }
+                mSort = type;
+                mResults.sort(type);
+                mResultsAdapter.notifyDataSetChanged();
             }
         });
+
+        if(mSort != null) {
+            mResultsAdapter.setSort(mSort);
+        }
 
         mResultsView.setAdapter(mResultsAdapter);
 
@@ -214,6 +202,9 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
         super.onSaveInstanceState(outState);
 
         outState.putParcelable("results", mResults);
+        if(mSort != null) {
+            outState.putString("sort", mSort);
+        }
         outState.putBoolean("have_results", mHaveResults);
     }
 

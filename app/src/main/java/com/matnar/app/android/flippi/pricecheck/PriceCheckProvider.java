@@ -92,18 +92,20 @@ public abstract class PriceCheckProvider {
         public void sort(final String type) {
             Collections.sort(this, new Comparator<PriceCheckItem>() {
                 public int compare(PriceCheckItem a, PriceCheckItem b) {
-                    switch (type) {
-                        case "date_desc":
-                            return -a.getDate().compareTo(b.getDate());
-                        case "date_asc":
-                            return a.getDate().compareTo(b.getDate());
-                        case "name_az":
-                            return a.getName().compareTo(b.getName());
-                        case "name_za":
-                            return -a.getName().compareTo(b.getName());
+                    if(type != null) {
+                        switch (type) {
+                            case "date_desc":
+                                return -a.getDate().compareTo(b.getDate());
+                            case "date_asc":
+                                return a.getDate().compareTo(b.getDate());
+                            case "name_az":
+                                return a.getName().compareTo(b.getName());
+                            case "name_za":
+                                return -a.getName().compareTo(b.getName());
+                        }
                     }
 
-                    return 0;
+                    return -a.getDate().compareTo(b.getDate());
                 }
             });
         }

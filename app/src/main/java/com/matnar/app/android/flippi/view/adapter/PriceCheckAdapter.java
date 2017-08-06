@@ -52,6 +52,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private OnRetryListener mOnRetryListener;
 
     private String mTempFilter;
+    private String mTempSort;
 
     private String mQuery;
     private boolean mIsBarcode = false;
@@ -68,23 +69,30 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         private PriceCheckFilterSpinner mSpinner;
         private PriceCheckFilterAdapter mCategoriesAdapter;
 
+        private AppCompatSpinner mSortSpinner;
+        private FavoritesSortAdapter mSortAdapter;
+
         HeaderViewHolder(View itemView, boolean isSavedList) {
             super(itemView);
 
             if(isSavedList) {
                 final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+                final String[] sortValues = itemView.getResources().getStringArray(R.array.favorites_sort);
 
-                AppCompatSpinner spinner = (AppCompatSpinner) itemView.findViewById(R.id.saved_row_header_sort);
+                mSortSpinner = (AppCompatSpinner) itemView.findViewById(R.id.saved_row_header_sort);
 
-                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(itemView.getContext(),
+                mSortAdapter = FavoritesSortAdapter.createFromResource(itemView.getContext(),
                         R.array.favorites_sort, R.layout.saved_list_row_header_sort);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                mSortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                mSortSpinner.setAdapter(mSortAdapter);
+                mSortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                        String key = (sortKeys[pos].equals("reset")) ? null : sortKeys[pos];
+                        mSortAdapter.setSelected((key == null) ? null : sortValues[pos]);
+                        mSortAdapter.notifyDataSetChanged();
                         if(mOnSortListener != null) {
-                            mOnSortListener.onSort(sortKeys[pos]);
+                            mOnSortListener.onSort(key);
                         }
                     }
 
@@ -127,6 +135,20 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         void setFilter(String filter) {
             mCategoriesAdapter.setFilter(filter);
+        }
+
+        void setSort(String sort) {
+            final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+
+            int i;
+            for(i = 0; i < sortKeys.length; i++) {
+                if(sortKeys[i].equals(sort)) {
+                    break;
+                }
+            }
+
+            mSortAdapter.setSelected(sort);
+            mSortSpinner.setSelection(i);
         }
     }
 
@@ -369,6 +391,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 ((HeaderViewHolder) holder).setFilter(mTempFilter);
                 mTempFilter = null;
             }
+            if(mTempSort != null) {
+                ((HeaderViewHolder) holder).setSort(mTempSort);
+                mTempSort = null;
+            }
         } else if(holder instanceof FooterViewHolder) {
             ((FooterViewHolder) holder).setLoading(mIsLoadingMore);
         } else if(holder instanceof NoResultsViewHolder) {
@@ -465,6 +491,16 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public void setFilter(String filter) {
         mTempFilter = filter;
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setSort(String sort) {
+        mTempSort = sort;
         for(int i = 0; i < getItemCount(); i++) {
             if(getItemViewType(i) == TYPE_HEADER) {
                 notifyItemChanged(i);
