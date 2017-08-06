@@ -15,6 +15,9 @@
     <string name="yes">Yes</string>
     <string name="undo">Undo</string>
 
+    <string name="header_back">Back</string>
+    <string name="header_right">Enter</string>
+
     <string name="main_fragment_phone_image">Flippi logo</string>
     <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below.</string>
 
