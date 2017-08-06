@@ -2,7 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/background_light">
+    android:background="@android:color/background_light"
+    android:foreground="@android:color/transparent">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -163,7 +164,7 @@
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
                     android:layout_gravity="end"
-                    android:src="@drawable/ic_star_empty"
+                    android:src="@drawable/ic_star_transition"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:padding="@dimen/search_row_star_padding"
                     android:clickable="true"

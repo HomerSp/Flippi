@@ -12,6 +12,6 @@
     <color name="search_results_background">#F0F0F0</color>
     <color name="search_results_row_divider">#A0A0A0</color>
 
-    <color name="search_row_background_disabled">#F2F2F2</color>
+    <color name="search_row_background_disabled">#AAF0F0F0</color>
     <color name="search_row_text_disabled">?android:attr/textColorTertiary</color>
 </resources>

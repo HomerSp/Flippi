@@ -1,8 +1,12 @@
 package com.matnar.app.android.flippi.view.adapter;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.TransitionDrawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,6 +37,8 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int TYPE_LOADING = 3;
     private static final int TYPE_NORESULTS = 4;
     private static final int TYPE_ERROR = 5;
+
+    private int mShortAnimationDuration = 0;
 
     private PriceCheckProvider.PriceCheckItems mList;
     private boolean mIsSavedList;
@@ -181,7 +187,20 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mInfo = info;
 
             if(mIsSavedList) {
-                mView.setForeground((info.isSaved()) ? new ColorDrawable(Color.argb(0, 0, 0, 0)) : new ColorDrawable(Color.argb(170, 240, 240, 240)));
+                int colorFrom = ((ColorDrawable) mView.getForeground()).getColor();
+                int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);;
+
+                ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+                colorAnimation.setDuration(mShortAnimationDuration); // milliseconds
+                colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        mView.setForeground(new ColorDrawable((Integer) animator.getAnimatedValue()));
+                    }
+
+                });
+                colorAnimation.start();
             }
 
             mTitleView.setText(info.getName());
@@ -193,7 +212,11 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mVoucherPriceView.setText(PriceCheckRegion.getPrice(region, info.getBuyVoucherPrice()));
 
             mStarView.setTag(info.isSaved());
-            mStarView.setImageResource((info.isSaved()) ? R.drawable.ic_star_filled : R.drawable.ic_star_empty);
+            TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
+            star.resetTransition();
+            if(info.isSaved()) {
+                star.startTransition(1);
+            }
             mStarView.setOnClickListener(this);
 
             Picasso.with(context).load(info.getImage()).into(mImageView);
@@ -204,7 +227,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             if(view.equals(mStarView)) {
                 boolean starred = !(Boolean) mStarView.getTag();
                 mStarView.setTag(starred);
-                mStarView.setImageResource((starred) ? R.drawable.ic_star_filled : R.drawable.ic_star_empty);
+                TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
+                if(starred) {
+                    star.startTransition(mShortAnimationDuration);
+                } else {
+                    star.reverseTransition(mShortAnimationDuration);
+                }
                 if(mOnStarredListener != null) {
                     mOnStarredListener.onStarred(mInfo, starred);
                 }
@@ -263,6 +291,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public PriceCheckAdapter(final RecyclerView recyclerView, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
+        mShortAnimationDuration = recyclerView.getResources().getInteger(android.R.integer.config_shortAnimTime);
         mList = list;
         mIsSavedList = isSavedList;
 
