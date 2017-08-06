@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -16,6 +17,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -43,7 +45,9 @@ import com.google.android.vending.licensing.AESObfuscator;
 import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
 import com.google.android.vending.licensing.ServerManagedPolicy;
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.matnar.app.android.flippi.R;
+import com.matnar.app.android.flippi.db.CategoryDatabase;
 import com.matnar.app.android.flippi.fragment.main.BarcodeResultFragment;
 import com.matnar.app.android.flippi.fragment.main.BarcodeScanFragment;
 import com.matnar.app.android.flippi.fragment.main.MainFragment;
@@ -54,6 +58,7 @@ import com.matnar.app.android.flippi.util.IabHelper;
 import com.matnar.app.android.flippi.util.IabResult;
 import com.matnar.app.android.flippi.util.Inventory;
 import com.matnar.app.android.flippi.view.widget.FooterBarLayout;
+import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -90,17 +95,41 @@ public class MainActivity extends AppCompatActivity
     private MenuItem mSearchItem = null;
     private MenuItem mClearFavoritesItem = null;
 
+    private boolean mSearchItemVisible = false;
+    private boolean mClearFavoritesItemVisible = false;
+
     private SearchView mSearchView = null;
     private String mSearchQuery = null;
     private boolean mSearchExpanded = false;
 
     private PriceCheckDatabase mPriceCheckDatabase;
+    private CategoryDatabase mCategoryDatabase;
+
     private Handler mUIHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Intialise Picasso downloader
+        boolean initialisePicasso = true;
+        try {
+            Picasso.setSingletonInstance(null);
+        } catch(IllegalStateException e) {
+            initialisePicasso = false;
+        }
+
+        if(initialisePicasso) {
+            try {
+                Picasso.setSingletonInstance(new Picasso.Builder(this)
+                        .downloader(new OkHttp3Downloader(this, Integer.MAX_VALUE))
+                        .build()
+                );
+            } catch(IllegalStateException e) {
+                Log.e(TAG, "Could not initialise Picasso", e);
+            }
+        }
 
         mAppBar = (AppBarLayout) findViewById(R.id.appbar_layout);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -149,6 +178,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         mPriceCheckDatabase = new PriceCheckDatabase(this);
+        mCategoryDatabase = new CategoryDatabase(this);
 
         mLicenseHandler = new Handler();
         mBillingHelper = new IabHelper(this, BASE64_PUBLIC_KEY);
@@ -260,6 +290,7 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main, menu);
 
         mSearchItem = menu.findItem(R.id.action_search);
+        mSearchItem.setVisible(mSearchItemVisible);
         MenuItemCompat.setOnActionExpandListener(mSearchItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
@@ -279,6 +310,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         mClearFavoritesItem = menu.findItem(R.id.action_favorites_clear);
+        mClearFavoritesItem.setVisible(mClearFavoritesItemVisible);
         mClearFavoritesItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -452,6 +484,10 @@ public class MainActivity extends AppCompatActivity
         return mPriceCheckDatabase;
     }
 
+    protected CategoryDatabase getCategoryDatabase() {
+        return mCategoryDatabase;
+    }
+
     protected void showFab(boolean show) {
         if(show && mFAB.getVisibility() != View.VISIBLE) {
             mFAB.show();
@@ -466,27 +502,42 @@ public class MainActivity extends AppCompatActivity
         mToolbar.setLayoutParams(params);
     }
 
-    protected void setFabIcon(int res) {
-        if((Integer) mFAB.getTag() != res) {
-            mFAB.setTag(res);
-            mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+    protected void setFabIcon(final int res) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mFAB.animate().withEndAction(new Runnable() {
                 @Override
-                public void onHidden(FloatingActionButton fab) {
-                    fab.setImageResource((Integer) fab.getTag());
-                    fab.show();
+                public void run() {
+                    if((Integer) mFAB.getTag() != res) {
+                        mFAB.setTag(res);
+                        mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+                            @Override
+                            public void onHidden(FloatingActionButton fab) {
+                                fab.setImageResource((Integer) fab.getTag());
+                                fab.show();
+                            }
+                        });
+                    } else {
+                        mFAB.setImageResource(res);
+                    }
                 }
-            });
+            }).start();
         } else {
             mFAB.setImageResource(res);
+            mFAB.setTag(res);
         }
     }
 
     protected void setSearchQuery(String q) {
+        Log.d(TAG, "setSearchQuery " + q + " " + mSearchView + " - " + mSearchItem);
+        if(mSearchView == null) {
+            return;
+        }
+
         mSearchView.setQuery(q, false);
         mSearchView.setIconified(false);
         mSearchView.clearFocus();
 
-        if(q.length() == 0) {
+        if(mSearchItem != null && q.length() == 0) {
             mSearchItem.collapseActionView();
         }
     }
@@ -548,6 +599,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void showClearFavorites(boolean show) {
         if(mClearFavoritesItem == null) {
+            mClearFavoritesItemVisible = show;
             return;
         }
 
@@ -556,6 +608,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void showSearchItem(boolean show) {
         if(mSearchItem == null) {
+            mSearchItemVisible = show;
             return;
         }
 
@@ -633,6 +686,10 @@ public class MainActivity extends AppCompatActivity
             return getMainActivity().getPriceCheckDatabase();
         }
 
+        protected CategoryDatabase getCategoryDatabase() {
+            return getMainActivity().getCategoryDatabase();
+        }
+
         protected void setToolbarScroll(boolean enable) {
             getMainActivity().setToolbarScroll(enable);
         }
@@ -692,6 +749,10 @@ public class MainActivity extends AppCompatActivity
 
         protected PriceCheckDatabase getPriceCheckDatabase() {
             return getMainActivity().getPriceCheckDatabase();
+        }
+
+        protected CategoryDatabase getCategoryDatabase() {
+            return getMainActivity().getCategoryDatabase();
         }
 
         protected void setToolbarScroll(boolean enable) {

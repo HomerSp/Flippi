@@ -34,9 +34,6 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
     private int mShortAnimationDuration;
 
-    private View mContainerView;
-    private View mLoadingView;
-    private TextView mNoResultsView;
     private RecyclerView mResultsView;
     private PriceCheckAdapter mResultsAdapter;
 
@@ -66,18 +63,8 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
         mView = inflater.inflate(R.layout.fragment_main_saved_list, container, false);
 
-        AppCompatSpinner spinner = (AppCompatSpinner) mView.findViewById(R.id.saved_row_header_sort);
-
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(mView.getContext(),
-                R.array.favorites_sort, R.layout.saved_list_row_header_sort);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        mContainerView = mView.findViewById(R.id.search_container);
-        mLoadingView = mContainerView.findViewById(R.id.search_loading_progress);
-        mNoResultsView = (TextView)mContainerView.findViewById(R.id.search_noresults_text);
         mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
         mResultsView.setLayoutManager(layoutManager);
         mResultsView.setItemAnimator(new DefaultItemAnimator());
@@ -115,7 +102,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                 mResultsAdapter.notifyItemChanged(item);
 
                 try {
-                    new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                    new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Set favourite error", e);
                 }
@@ -132,7 +119,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(false);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo set favourite error", e);
                             }
@@ -152,7 +139,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(true);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo remove favourite error", e);
                             }
@@ -242,7 +229,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
     public void clearFavorites() {
         try {
-            new PriceCheckDatabase.PriceCheckClearTask(super.getPriceCheckDatabase(), 0)
+            new PriceCheckDatabase.ClearTask(super.getPriceCheckDatabase(), 0)
                     .setResultListener(new PriceCheckDatabase.ClearListener() {
                         @Override
                         public void onResult(boolean result) {
@@ -275,7 +262,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                                             updateTotals();
 
-                                            new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), mResults, 0).execute();
+                                            new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), mResults, 0).execute();
                                         } catch (IllegalStateException e) {
                                             Log.e(TAG, "Undo clear favourites error", e);
                                         }
@@ -315,14 +302,14 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     public void doQuery() {
         mHaveResults = false;
         mResults.clear();
-
-        AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-        AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mLoadingView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
+        mResultsAdapter.setHaveMoreItems(false);
+        mResultsAdapter.setLoading(true);
+        mResultsAdapter.setNoResults(false);
+        mResultsAdapter.setError(false);
+        mResultsAdapter.notifyDataSetChanged();
 
         try {
-            new PriceCheckDatabase.PriceCheckGetAllTask(super.getPriceCheckDatabase(), 0)
+            new PriceCheckDatabase.GetAllTask(super.getPriceCheckDatabase(), 0)
                     .setResultListener(new PriceCheckDatabase.GetAllListener() {
                         @Override
                         public void onResult(PriceCheckProvider.PriceCheckItems results) {
@@ -332,6 +319,13 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                             if (results.size() > 0) {
                                 mResults.addAll(results);
+                            }
+
+                            mResultsAdapter.setLoading(false);
+                            if(mResults.hasError()) {
+                                mResultsAdapter.setError(true);
+                            } else {
+                                mResultsAdapter.setNoResults(mResults.size() == 0);
                             }
 
                             update();
@@ -344,26 +338,10 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     }
 
     private void update() {
-        if(mResults.size() > 0) {
-            StringBuilder s = new StringBuilder();
-
-            AnimationUtil.animateHide(mContainerView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mResultsView, mShortAnimationDuration);
-        } else {
-            mNoResultsView.setText(R.string.savedlist_noresults);
-
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mNoResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
-        }
-
         updateTotals();
 
         mResultsAdapter.notifyDataSetChanged();
-        mResultsAdapter.setLoaded();
+        mResultsAdapter.setLoadedMore();
         mHaveResults = true;
     }
 

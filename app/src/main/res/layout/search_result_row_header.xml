@@ -3,14 +3,14 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="@dimen/search_row_header_height">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <com.matnar.app.android.flippi.view.widget.PriceCheckFilterSpinner
+        android:id="@+id/search_row_filter"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:text="@string/search_row_header_results"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:entries="@array/search_row_filter_disabled" />
 
     <View
         android:layout_width="match_parent"

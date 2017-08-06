@@ -12,48 +12,6 @@
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        android:alpha="0.0"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
-    <LinearLayout
-        android:id="@+id/search_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="visible"
-        android:alpha="1.0">
-
-        <include layout="@layout/saved_list_row_header" />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/background_light"
-            android:paddingTop="@dimen/search_row_padding_vertical"
-            android:paddingBottom="@dimen/search_row_padding_vertical"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin">
-
-            <TextView
-                android:id="@+id/search_noresults_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/savedlist_noresults"
-                android:visibility="gone"
-                />
-
-            <ProgressBar
-                android:id="@+id/search_loading_progress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                />
-
-        </RelativeLayout>
-
-        <include layout="@layout/saved_list_row_footer" />
-
-    </LinearLayout>
 
 </RelativeLayout>

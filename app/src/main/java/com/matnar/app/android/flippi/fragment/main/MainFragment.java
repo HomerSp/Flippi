@@ -100,6 +100,7 @@ public class MainFragment extends MainActivity.MainActivityFragment {
                     if (!result) {
                         AdRequest adRequest = new AdRequest.Builder()
                                 .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
+                                .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
                                 .build();
                         mAdView.loadAd(adRequest);
                     }

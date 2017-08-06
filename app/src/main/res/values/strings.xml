@@ -32,6 +32,8 @@
     <string name="search_row_unstarred_clear_undo">Favourites have been cleared</string>
 
     <string name="search_row_header_results">Results</string>
+    <string name="search_row_filter_no">Select filter</string>
+    <string name="search_row_filter_clear">Clear filter</string>
 
     <string name="search_row_sellprice">Sell Price: %1$s</string>
     <string name="search_row_cashprice">Cash</string>
@@ -46,6 +48,7 @@
     <string name="saved_row_footer_total">Total</string>
 
     <string name="savedlist_noresults">No favorites</string>
+    <string name="savedlist_error">Could not retrieve favorites</string>
     <string name="savedlist_clear">Clear favorites</string>
 
     <string name="settings_category_global">Global</string>

@@ -17,9 +17,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.matnar.app.android.flippi.R;
+import com.matnar.app.android.flippi.pricecheck.PriceCheckCategories;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
-import com.matnar.app.android.flippi.view.widget.SearchResultLayout;
+import com.matnar.app.android.flippi.view.widget.PriceCheckFilterSpinner;
+import com.squareup.okhttp.internal.framed.Header;
 import com.squareup.picasso.Picasso;
 
 public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -28,20 +30,39 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
     private static final int TYPE_FOOTER = 2;
+    private static final int TYPE_LOADING = 3;
+    private static final int TYPE_NORESULTS = 4;
+    private static final int TYPE_ERROR = 5;
 
     private PriceCheckProvider.PriceCheckItems mList;
     private boolean mIsSavedList;
+
+    private PriceCheckCategories mCategories = null;
+
     private OnLoadMoreListener mLoadMoreListener;
     private OnStarredListener mOnStarredListener;
     private OnSortListener mOnSortListener;
+    private OnFilterListener mOnFilterListener;
+    private OnRetryListener mOnRetryListener;
+
+    private String mTempFilter;
+
+    private String mQuery;
+    private boolean mIsBarcode = false;
+    private boolean mIsLoading = false;
+    private boolean mNoResults = false;
+    private boolean mError = false;
 
     private boolean mHaveMoreItems = true;
-    private boolean mIsLoading = true;
+    private boolean mIsLoadingMore = false;
     private int mVisibleThreshold = 5;
     private int mLastVisibleItem, mTotalItemCount;
 
     private class HeaderViewHolder extends RecyclerView.ViewHolder {
         private boolean mIsSavedList;
+
+        private PriceCheckFilterSpinner mSpinner;
+        private PriceCheckFilterAdapter mCategoriesAdapter;
 
         HeaderViewHolder(View itemView, boolean isSavedList) {
             super(itemView);
@@ -69,7 +90,40 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                     }
                 });
+            } else {
+                mSpinner = (PriceCheckFilterSpinner) itemView.findViewById(R.id.search_row_filter);
+
+                mCategoriesAdapter = new PriceCheckFilterAdapter(itemView.getContext(), mSpinner);
+                mSpinner.setAdapter(mCategoriesAdapter);
+                mSpinner.setOnItemSelectedListener(new PriceCheckFilterSpinner.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(String name) {
+                        if(mOnFilterListener != null) {
+                            mOnFilterListener.onFilter(name);
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected() {
+                        if(mOnFilterListener != null) {
+                            mOnFilterListener.onFilter("");
+                        }
+                    }
+                });
             }
+        }
+
+        void setCategories(PriceCheckCategories categories) {
+            if(categories == null) {
+                return;
+            }
+
+            mCategoriesAdapter.setItems(categories);
+            mCategoriesAdapter.notifyDataSetChanged();
+        }
+
+        void setFilter(String filter) {
+            mCategoriesAdapter.setFilter(filter);
         }
     }
 
@@ -158,6 +212,56 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    private static class LoadingViewHolder extends RecyclerView.ViewHolder {
+        LoadingViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+    private static class NoResultsViewHolder extends RecyclerView.ViewHolder {
+        private TextView mTextView;
+
+        NoResultsViewHolder(View itemView) {
+            super(itemView);
+
+            mTextView = (TextView) itemView.findViewById(R.id.search_noresults_text);
+        }
+
+        void setQuery() {
+            mTextView.setText(R.string.savedlist_noresults);
+        }
+
+        void setQuery(String query, boolean isBarcode) {
+            mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_noresults_barcode : R.string.search_noresults, query));
+        }
+    }
+
+    private static class ErrorViewHolder extends RecyclerView.ViewHolder {
+        private TextView mTextView;
+
+        ErrorViewHolder(View itemView, final OnRetryListener listener) {
+            super(itemView);
+
+            mTextView = (TextView) itemView.findViewById(R.id.search_error_text);
+            itemView.findViewById(R.id.search_error_retry).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(listener != null) {
+                        listener.onRetry();
+                    }
+                }
+            });
+        }
+
+        void setQuery() {
+            mTextView.setText(R.string.savedlist_error);
+        }
+
+        void setQuery(String query, boolean isBarcode) {
+            mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_error_barcode : R.string.search_error, query));
+        }
+    }
+
     public PriceCheckAdapter(final RecyclerView recyclerView, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
         mList = list;
         mIsSavedList = isSavedList;
@@ -169,12 +273,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 super.onScrolled(recyclerView, dx, dy);
                 mTotalItemCount = linearLayoutManager.getItemCount();
                 mLastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                if (mHaveMoreItems && !mIsLoading && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
+                if (mList.size() > 0 && mHaveMoreItems && !mIsLoadingMore && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
                     if (mLoadMoreListener != null) {
                         mLoadMoreListener.onLoadMore();
                     }
 
-                    mIsLoading = true;
+                    mIsLoadingMore = true;
                     for(int i = 0; i < getItemCount(); i++) {
                         if(getItemViewType(i) == TYPE_FOOTER) {
                             final int index = i;
@@ -208,6 +312,21 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     .inflate((mIsSavedList) ? R.layout.saved_list_row_footer : R.layout.search_result_row_footer, parent, false);
 
             return new FooterViewHolder(itemView, mIsSavedList);
+        } else if(viewType == TYPE_LOADING) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_loading, parent, false);
+
+            return new LoadingViewHolder(itemView);
+        } else if(viewType == TYPE_NORESULTS) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_noresults, parent, false);
+
+            return new NoResultsViewHolder(itemView);
+        } else if(viewType == TYPE_ERROR) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_error, parent, false);
+
+            return new ErrorViewHolder(itemView, mOnRetryListener);
         }
 
         throw new RuntimeException();
@@ -218,19 +337,49 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         if(holder instanceof PriceCheckViewHolder && position >= 1 && position < mList.size() + 1) {
             PriceCheckProvider.PriceCheckItem info = mList.get(position - 1);
             ((PriceCheckViewHolder) holder).setInfo(info);
+        } else if(holder instanceof HeaderViewHolder) {
+            ((HeaderViewHolder) holder).setCategories(mCategories);
+            if(mTempFilter != null) {
+                ((HeaderViewHolder) holder).setFilter(mTempFilter);
+                mTempFilter = null;
+            }
         } else if(holder instanceof FooterViewHolder) {
-            ((FooterViewHolder) holder).setLoading(mIsLoading);
+            ((FooterViewHolder) holder).setLoading(mIsLoadingMore);
+        } else if(holder instanceof LoadingViewHolder) {
+            // Nothing
+        } else if(holder instanceof NoResultsViewHolder) {
+            if(mIsSavedList) {
+                ((NoResultsViewHolder) holder).setQuery();
+            } else {
+                ((NoResultsViewHolder) holder).setQuery(mQuery, mIsBarcode);
+            }
+        } else if(holder instanceof ErrorViewHolder) {
+            if(mIsSavedList) {
+                ((ErrorViewHolder) holder).setQuery();
+            } else {
+                ((ErrorViewHolder) holder).setQuery(mQuery, mIsBarcode);
+            }
         }
     }
 
     @Override
     public int getItemCount() {
+        if(mIsLoading || mNoResults || mError) {
+            return 3;
+        }
+
         return mList.size() + 2;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0) {
+        if(mIsLoading && position == 1) {
+            return TYPE_LOADING;
+        } else if(mNoResults && position == 1) {
+            return TYPE_NORESULTS;
+        } else if(mError && position == 1) {
+            return TYPE_ERROR;
+        } else if (position == 0) {
             return TYPE_HEADER;
         } else if(position == getItemCount() - 1) {
             return TYPE_FOOTER;
@@ -247,16 +396,55 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         super.notifyItemRemoved(mList.indexOf(item) + 1);
     }
 
+    public void setQuery(String query, boolean isBarcode) {
+        mQuery = query;
+        mIsBarcode = isBarcode;
+    }
+
+    public void setLoading(boolean l) {
+        mIsLoading = l;
+    }
+
+    public void setNoResults(boolean b)  {
+        mNoResults = b;
+    }
+
+    public void setError(boolean b) {
+        mError = b;
+    }
+
     public void setHaveMoreItems(boolean b) {
         mHaveMoreItems = b;
     }
 
-    public void setLoaded() {
-        mIsLoading = false;
+    public void setLoadedMore() {
+        mIsLoadingMore = false;
 
         for(int i = 0; i < getItemCount(); i++) {
             if(getItemViewType(i) == TYPE_FOOTER) {
                 notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setCategories(PriceCheckCategories categories) {
+        mCategories = categories;
+
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setFilter(String filter) {
+        mTempFilter = filter;
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
             }
         }
     }
@@ -269,6 +457,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
     public void setOnSortListener(OnSortListener listener) {
         mOnSortListener = listener;
+    }
+    public void setOnFilterListener(OnFilterListener listener) {
+        mOnFilterListener = listener;
+    }
+    public void setOnRetryListener(OnRetryListener listener) {
+        mOnRetryListener = listener;
     }
 
     public interface OnLoadMoreListener {
@@ -283,4 +477,11 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         void onSort(String type);
     }
 
+    public interface OnFilterListener {
+        void onFilter(String filter);
+    }
+
+    public interface OnRetryListener {
+        void onRetry();
+    }
 }

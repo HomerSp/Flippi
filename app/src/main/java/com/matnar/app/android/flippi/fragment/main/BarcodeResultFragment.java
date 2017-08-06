@@ -13,15 +13,14 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.TextView;
 
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
 import com.matnar.app.android.flippi.barcode.BarcodeProvider;
+import com.matnar.app.android.flippi.db.CategoryDatabase;
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
+import com.matnar.app.android.flippi.pricecheck.PriceCheckCategories;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
-import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
-import com.matnar.app.android.flippi.util.AnimationUtil;
 import com.matnar.app.android.flippi.view.adapter.PriceCheckAdapter;
 import com.matnar.app.android.flippi.view.decoration.PriceCheckDecoration;
 
@@ -35,20 +34,19 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private int mShortAnimationDuration;
     private int mRevealAnimationDuration;
 
-    private View mContainerView;
-    private View mLoadingView;
-    private TextView mNoResultsView;
-    private View mErrorView;
     private RecyclerView mResultsView;
     private PriceCheckAdapter mResultsAdapter;
 
     private Snackbar mSnackbar = null;
+
+    private PriceCheckCategories mCategories = new PriceCheckCategories();
 
     private String mQuery = null;
     private boolean mIsBarcode = false;
     private String mQueryPending = null;
     private PriceCheckProvider.PriceCheckItems mResults = new PriceCheckProvider.PriceCheckItems();
     private int mCurrentPage = 0;
+    private String mFilter = "";
 
     public BarcodeResultFragment() {
     }
@@ -99,17 +97,6 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        mContainerView = mView.findViewById(R.id.search_container);
-        mLoadingView = mContainerView.findViewById(R.id.search_loading_progress);
-        mNoResultsView = (TextView) mContainerView.findViewById(R.id.search_noresults_text);
-        mErrorView = mContainerView.findViewById(R.id.search_error_layout);
-        mErrorView.findViewById(R.id.search_error_retry).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BarcodeResultFragment.this.doSearch(mQuery, mIsBarcode);
-            }
-        });
-
         mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
         mResultsView.setLayoutManager(layoutManager);
         mResultsView.setItemAnimator(new DefaultItemAnimator());
@@ -140,9 +127,19 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mQueryPending = savedInstanceState.getString("query_pending", null);
             mResults.addAll(savedInstanceState.getParcelable("results"));
             mCurrentPage = savedInstanceState.getInt("current_page");
+            mCategories.addAll(savedInstanceState.getParcelable("categories"));
+            mFilter = savedInstanceState.getString("filter");
         } else {
             mQuery = getArguments().getString("query");
             mIsBarcode = getArguments().getBoolean("is_barcode");
+        }
+
+        if(mIsBarcode) {
+            try {
+                super.setSearchQuery("");
+            } catch(IllegalStateException e) {
+                Log.e(TAG, "Setting search error", e);
+            }
         }
 
         mResultsAdapter = new PriceCheckAdapter(mResultsView, mResults, false);
@@ -160,7 +157,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
                 try {
                     item.setSaved(starred);
-                    new PriceCheckDatabase.PriceCheckUpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                    new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Setting favourites error", e);
                     return;
@@ -179,7 +176,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(false);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo favourite error", e);
                             }
@@ -200,7 +197,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(true);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo unfavourite error", e);
                             }
@@ -211,8 +208,25 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             }
         });
 
+        mResultsAdapter.setOnFilterListener(new PriceCheckAdapter.OnFilterListener() {
+            @Override
+            public void onFilter(String filter) {
+                mFilter = filter;
+                doSearch(mQuery, mIsBarcode);
+            }
+        });
+
+        mResultsAdapter.setOnRetryListener(new PriceCheckAdapter.OnRetryListener() {
+            @Override
+            public void onRetry() {
+                BarcodeResultFragment.this.doSearch(mQuery, mIsBarcode);
+            }
+        });
+
         if(savedInstanceState != null) {
             mResultsAdapter.setHaveMoreItems(mCurrentPage < mResults.getPages());
+            mResultsAdapter.setCategories(mCategories);
+            mResultsAdapter.setFilter(mFilter);
         }
 
         mResultsView.setAdapter(mResultsAdapter);
@@ -223,7 +237,20 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         try {
             if (savedInstanceState == null || mCurrentPage == 0) {
-                doSearch(mQuery, mIsBarcode);
+                if(mCategories.size() == 0) {
+                    new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
+                            .setResultListener(new CategoryDatabase.GetAllListener() {
+                                @Override
+                                public void onResult(PriceCheckCategories results) {
+                                    mCategories.addAll(results);
+                                    mResultsAdapter.setCategories(mCategories);
+                                    doSearch(mQuery, mIsBarcode);
+                                }
+                            })
+                            .execute();
+                } else {
+                    doSearch(mQuery, mIsBarcode);
+                }
             } else {
                 update();
             }
@@ -246,6 +273,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         outState.putParcelable("results", mResults);
         outState.putInt("current_page", mCurrentPage);
+        outState.putParcelable("categories", mCategories);
+        outState.putString("filter", mFilter);
     }
 
     @Override
@@ -265,12 +294,11 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         mCurrentPage = 0;
         mResults.clear();
         mResultsAdapter.setHaveMoreItems(true);
-
-        AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-        AnimationUtil.animateHide(mErrorView, mShortAnimationDuration);
-        AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mLoadingView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
+        mResultsAdapter.setQuery(mQuery, mIsBarcode);
+        mResultsAdapter.setLoading(true);
+        mResultsAdapter.setNoResults(false);
+        mResultsAdapter.setError(false);
+        mResultsAdapter.notifyDataSetChanged();
 
         doSearchPage(mCurrentPage);
     }
@@ -285,6 +313,14 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                 }
 
                 mResults.addAll(results);
+
+                mResultsAdapter.setLoading(false);
+                if(mResults.hasError()) {
+                    mResultsAdapter.setError(true);
+                } else {
+                    mResultsAdapter.setNoResults(mResults.size() == 0);
+                }
+
                 if (results.size() > 0) {
                     mCurrentPage = page;
                     if(page == 0) {
@@ -292,6 +328,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                     }
 
                     update();
+
+                    mResultsAdapter.setHaveMoreItems(mCurrentPage < results.getPages());
                 } else {
                     BarcodeProvider.getInformation(context, mQuery, new BarcodeProvider.BarcodeListener() {
                         @Override
@@ -306,16 +344,14 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                         }
                     });
                 }
-
-                mResultsAdapter.setHaveMoreItems(mCurrentPage < results.getPages());
             }
         };
 
         try {
             if (page > 0) {
-                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), listener);
+                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, listener);
             } else {
-                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), listener);
+                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, listener);
             }
         } catch(IllegalStateException e) {
             Log.e(TAG, "Get price information error", e);
@@ -323,43 +359,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     }
 
     private void update() {
-        if(mResults.size() > 0) {
-            AnimationUtil.animateHide(mContainerView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mErrorView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mResultsView, mShortAnimationDuration);
-        } else {
-            boolean error = mResults.hasError();
-            String noResultsText;
-            if (mIsBarcode) {
-                noResultsText = getContext().getString((error) ? R.string.search_error_barcode : R.string.search_noresults_barcode, mQuery);
-            } else {
-                noResultsText = getContext().getString((error) ? R.string.search_error : R.string.search_noresults, mQuery);
-            }
-
-            if(error) {
-                ((TextView) mErrorView.findViewById(R.id.search_error_text)).setText(noResultsText);
-            } else {
-                ((TextView) mNoResultsView.findViewById(R.id.search_noresults_text)).setText(noResultsText);
-            }
-
-            mNoResultsView.findViewById(R.id.search_noresults_text).setVisibility((error) ? View.GONE : View.VISIBLE);
-
-            AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            if(error) {
-                AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-                AnimationUtil.animateShow(mErrorView, mShortAnimationDuration);
-            } else {
-                AnimationUtil.animateHide(mErrorView, mShortAnimationDuration);
-                AnimationUtil.animateShow(mNoResultsView, mShortAnimationDuration);
-            }
-            AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
-        }
-
         mResultsAdapter.notifyDataSetChanged();
-        mResultsAdapter.setLoaded();
+        mResultsAdapter.setLoadedMore();
     }
 }
