@@ -537,16 +537,6 @@ public class MainActivity extends AppCompatActivity
             mFooter.setVisibility(View.INVISIBLE);
             mFooter.removeAllViews();
             mFooter.addView(view);
-            mFAB.clearAnimation();
-            mFAB.animate()
-                    .translationY(translationY)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mFAB.setTranslationY(translationY);
-                        }
-                    })
-                    .start();
             mFooter.setTranslationY(-translationY);
             mFooter.setVisibility(View.VISIBLE);
             mFooter.animate()
@@ -568,16 +558,6 @@ public class MainActivity extends AppCompatActivity
                     })
                     .start();
 
-            mFAB.clearAnimation();
-            mFAB.animate()
-                    .translationY(0.0f)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mFAB.setTranslationY(0.0f);
-                        }
-                    })
-                    .start();
             return null;
         }
     }
