@@ -65,15 +65,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private int mLastVisibleItem, mTotalItemCount;
 
     private class HeaderViewHolder extends RecyclerView.ViewHolder {
-        private boolean mIsSavedList;
-
         private PriceCheckFilterSpinner mSpinner;
         private PriceCheckFilterAdapter mCategoriesAdapter;
 
         HeaderViewHolder(View itemView, boolean isSavedList) {
             super(itemView);
 
-            mIsSavedList = isSavedList;
             if(isSavedList) {
                 final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
 
@@ -188,7 +185,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             if(mIsSavedList) {
                 int colorFrom = ((ColorDrawable) mView.getForeground()).getColor();
-                int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);;
+                int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);
 
                 ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
                 colorAnimation.setDuration(mShortAnimationDuration); // milliseconds

@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.preference.ListPreference;
-import android.support.v7.preference.Preference;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +11,6 @@ import android.view.ViewGroup;
 
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
-
-import java.util.Arrays;
 
 public class SettingsFragment extends MainActivity.MainActivityPreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "Flippi." + SettingsFragment.class.getSimpleName();

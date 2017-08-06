@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.matnar.app.android.flippi.util;
+package com.google.android.vending.licensing.util;
 
 /**
  * Represents the result of an in-app billing operation.

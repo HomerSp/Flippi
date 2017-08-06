@@ -15,9 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 
 public class CeXPriceCheckProvider extends PriceCheckProvider {
     private static final String TAG = "Flippi." + CeXPriceCheckProvider.class.getSimpleName();

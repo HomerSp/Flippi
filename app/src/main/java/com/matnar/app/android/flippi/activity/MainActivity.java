@@ -42,9 +42,9 @@ import com.matnar.app.android.flippi.fragment.main.BarcodeScanFragment;
 import com.matnar.app.android.flippi.fragment.main.MainFragment;
 import com.matnar.app.android.flippi.fragment.main.SavedListFragment;
 import com.matnar.app.android.flippi.fragment.main.SettingsFragment;
-import com.matnar.app.android.flippi.util.IabHelper;
-import com.matnar.app.android.flippi.util.IabResult;
-import com.matnar.app.android.flippi.util.Inventory;
+import com.google.android.vending.licensing.util.IabHelper;
+import com.google.android.vending.licensing.util.IabResult;
+import com.google.android.vending.licensing.util.Inventory;
 import com.matnar.app.android.flippi.view.widget.FooterBarLayout;
 import com.squareup.picasso.Picasso;
 

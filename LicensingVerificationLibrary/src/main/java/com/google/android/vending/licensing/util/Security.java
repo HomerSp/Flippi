@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-package com.matnar.app.android.flippi.util;
+package com.google.android.vending.licensing.util;
 
 import android.text.TextUtils;
 import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 import java.security.InvalidKeyException;
