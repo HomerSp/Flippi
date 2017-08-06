@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -89,6 +90,9 @@ public class MainActivity extends AppCompatActivity
 
     private MenuItem mSearchItem = null;
     private MenuItem mClearFavoritesItem = null;
+
+    private boolean mSearchItemVisible = false;
+    private boolean mClearFavoritesItemVisible = false;
 
     private SearchView mSearchView = null;
     private String mSearchQuery = null;
@@ -260,6 +264,7 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main, menu);
 
         mSearchItem = menu.findItem(R.id.action_search);
+        mSearchItem.setVisible(mSearchItemVisible);
         MenuItemCompat.setOnActionExpandListener(mSearchItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
@@ -279,6 +284,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         mClearFavoritesItem = menu.findItem(R.id.action_favorites_clear);
+        mClearFavoritesItem.setVisible(mClearFavoritesItemVisible);
         mClearFavoritesItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -466,27 +472,41 @@ public class MainActivity extends AppCompatActivity
         mToolbar.setLayoutParams(params);
     }
 
-    protected void setFabIcon(int res) {
-        if((Integer) mFAB.getTag() != res) {
-            mFAB.setTag(res);
-            mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+    protected void setFabIcon(final int res) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mFAB.animate().withEndAction(new Runnable() {
                 @Override
-                public void onHidden(FloatingActionButton fab) {
-                    fab.setImageResource((Integer) fab.getTag());
-                    fab.show();
+                public void run() {
+                    if((Integer) mFAB.getTag() != res) {
+                        mFAB.setTag(res);
+                        mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+                            @Override
+                            public void onHidden(FloatingActionButton fab) {
+                                fab.setImageResource((Integer) fab.getTag());
+                                fab.show();
+                            }
+                        });
+                    } else {
+                        mFAB.setImageResource(res);
+                    }
                 }
-            });
+            }).start();
         } else {
             mFAB.setImageResource(res);
+            mFAB.setTag(res);
         }
     }
 
     protected void setSearchQuery(String q) {
+        if(mSearchView == null) {
+            return;
+        }
+
         mSearchView.setQuery(q, false);
         mSearchView.setIconified(false);
         mSearchView.clearFocus();
 
-        if(q.length() == 0) {
+        if(mSearchItem != null && q.length() == 0) {
             mSearchItem.collapseActionView();
         }
     }
@@ -548,6 +568,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void showClearFavorites(boolean show) {
         if(mClearFavoritesItem == null) {
+            mClearFavoritesItemVisible = show;
             return;
         }
 
@@ -556,6 +577,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void showSearchItem(boolean show) {
         if(mSearchItem == null) {
+            mSearchItemVisible = show;
             return;
         }
 
