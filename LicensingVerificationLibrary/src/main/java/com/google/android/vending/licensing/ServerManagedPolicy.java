@@ -16,18 +16,13 @@
 
 package com.google.android.vending.licensing;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Default policy. All policy decisions are based off of response data received
@@ -262,12 +257,11 @@ public class ServerManagedPolicy implements Policy {
     private Map<String, String> decodeExtras(String extras) {
         Map<String, String> results = new HashMap<String, String>();
         try {
-            URI rawExtras = new URI("?" + extras);
-            List<NameValuePair> extraList = URLEncodedUtils.parse(rawExtras, "UTF-8");
-            for (NameValuePair item : extraList) {
-                results.put(item.getName(), item.getValue());
+            Uri rawExtras = Uri.parse("http://google.com/?" + extras);
+            for(String key: rawExtras.getQueryParameterNames()) {
+                results.put(key, rawExtras.getQueryParameter(key));
             }
-        } catch (URISyntaxException e) {
+        } catch (NullPointerException e) {
           Log.w(TAG, "Invalid syntax error while decoding extras data from server.");
         }
         return results;

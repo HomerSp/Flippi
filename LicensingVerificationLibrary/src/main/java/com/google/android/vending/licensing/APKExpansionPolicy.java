@@ -17,11 +17,9 @@ package com.google.android.vending.licensing;
  * limitations under the License.
  */
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
 
 import java.net.URI;
@@ -295,7 +293,6 @@ public class APKExpansionPolicy implements Policy {
      * 
      * @param index the index of the URL to fetch. This value will be either
      *            MAIN_FILE_URL_INDEX or PATCH_FILE_URL_INDEX
-     * @param URL the URL to set
      */
     public String getExpansionURL(int index) {
         if (index < mExpansionURLs.size()) {
@@ -378,17 +375,16 @@ public class APKExpansionPolicy implements Policy {
     private Map<String, String> decodeExtras(String extras) {
         Map<String, String> results = new HashMap<String, String>();
         try {
-            URI rawExtras = new URI("?" + extras);
-            List<NameValuePair> extraList = URLEncodedUtils.parse(rawExtras, "UTF-8");
-            for (NameValuePair item : extraList) {
-                String name = item.getName();
+            Uri rawExtras = Uri.parse("http://google.com/?" + extras);
+            for(String key: rawExtras.getQueryParameterNames()) {
+                String name = key;
                 int i = 0;
                 while (results.containsKey(name)) {
-                    name = item.getName() + ++i;
+                    name = key + ++i;
                 }
-                results.put(name, item.getValue());
+                results.put(name, rawExtras.getQueryParameter(key));
             }
-        } catch (URISyntaxException e) {
+        } catch (NullPointerException e) {
             Log.w(TAG, "Invalid syntax error while decoding extras data from server.");
         }
         return results;
