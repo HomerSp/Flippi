@@ -93,7 +93,7 @@ public abstract class PriceCheckProvider {
             Collections.sort(this, new Comparator<PriceCheckItem>() {
                 public int compare(PriceCheckItem a, PriceCheckItem b) {
                     if(type.equals("date")) {
-                        return a.getDate().compareTo(b.getDate());
+                        return -a.getDate().compareTo(b.getDate());
                     } else if(type.equals("name")) {
                         return a.getName().compareTo(b.getName());
                     }
