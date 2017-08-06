@@ -156,6 +156,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                             mResultsAdapter.notifyItemRemoved(item);
                             mResults.remove(item);
                             if(mResults.size() == 0) {
+                                mResultsAdapter.setNoResults(true);
                                 update();
                             }
                         }
@@ -284,6 +285,10 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                                             mResults.remove(item);
                                             i--;
                                         } while(++i < mResults.size());
+
+                                        if(mResults.size() == 0) {
+                                            mResultsAdapter.setNoResults(true);
+                                        }
 
                                         update();
                                     }
