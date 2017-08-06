@@ -1,12 +1,10 @@
-package com.matnar.app.android.flippi.view.behavoir;
+package com.matnar.app.android.flippi.view.behavior;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 
