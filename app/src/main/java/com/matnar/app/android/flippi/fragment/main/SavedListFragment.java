@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.matnar.app.android.flippi.R;
@@ -20,11 +18,12 @@ import com.matnar.app.android.flippi.activity.MainActivity;
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
-import com.matnar.app.android.flippi.util.AnimationUtil;
 import com.matnar.app.android.flippi.view.adapter.PriceCheckAdapter;
 import com.matnar.app.android.flippi.view.decoration.PriceCheckDecoration;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SavedListFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + SavedListFragment.class.getSimpleName();
@@ -153,12 +152,12 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                                 return;
                             }
 
+                            if(mResults.size() <= 1) {
+                                mResultsAdapter.setNoResults(true);
+                            }
+
                             mResultsAdapter.notifyItemRemoved(item);
                             mResults.remove(item);
-                            if(mResults.size() == 0) {
-                                mResultsAdapter.setNoResults(true);
-                                update();
-                            }
                         }
                     };
                     mSnackbar.addCallback(cb);
@@ -274,23 +273,23 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                                 Snackbar.Callback cb = new Snackbar.Callback() {
                                     @Override
                                     public void onDismissed(Snackbar transientBottomBar, @DismissEvent int event) {
-                                        int i = 0;
-                                        do {
-                                            PriceCheckProvider.PriceCheckItem item = mResults.get(i);
+                                        List<PriceCheckProvider.PriceCheckItem> removals = new ArrayList<>();
+                                        for(PriceCheckProvider.PriceCheckItem item: mResults) {
                                             if(item.isSaved()) {
                                                 continue;
                                             }
 
-                                            mResultsAdapter.notifyItemRemoved(item);
-                                            mResults.remove(item);
-                                            i--;
-                                        } while(++i < mResults.size());
+                                            removals.add(item);
+                                        }
 
-                                        if(mResults.size() == 0) {
+                                        if(removals.size() == mResults.size()) {
                                             mResultsAdapter.setNoResults(true);
                                         }
 
-                                        update();
+                                        for(PriceCheckProvider.PriceCheckItem item: removals) {
+                                            mResultsAdapter.notifyItemRemoved(item);
+                                            mResults.remove(item);
+                                        }
                                     }
                                 };
                                 mSnackbar.addCallback(cb);

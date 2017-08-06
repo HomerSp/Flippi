@@ -12,6 +12,8 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 
+import com.matnar.app.android.flippi.view.adapter.PriceCheckAdapter;
+
 public class PriceCheckDecoration extends DividerItemDecoration {
     private static final String TAG = "Flippi." + PriceCheckDecoration.class.getSimpleName();
 
@@ -45,8 +47,17 @@ public class PriceCheckDecoration extends DividerItemDecoration {
             right = parent.getWidth();
         }
 
+        RecyclerView.Adapter adapter = parent.getAdapter();
+        final int adapterCount = adapter.getItemCount();
+
         final int childCount = parent.getChildCount();
         for (int i = 1; i < childCount - 1; i++) {
+            // Don't draw items that are outside of the adapter,
+            // this happens when a changed item is fading out for example.
+            if(i >= adapterCount - 1) {
+                break;
+            }
+
             final View child = parent.getChildAt(i);
             parent.getDecoratedBoundsWithMargins(child, mBounds);
             final int bottom = mBounds.bottom + Math.round(ViewCompat.getTranslationY(child));

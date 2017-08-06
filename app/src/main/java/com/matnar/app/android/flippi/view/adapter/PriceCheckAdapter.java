@@ -364,7 +364,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        if(mIsLoading || mNoResults || mError) {
+        if(mList.size() == 0 && (mIsLoading || mNoResults || mError)) {
             return 3;
         }
 
