@@ -47,7 +47,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private String mQueryPending = null;
     private PriceCheckProvider.PriceCheckItems mResults = new PriceCheckProvider.PriceCheckItems();
     private int mCurrentPage = 0;
-    private String mFilter = "";
+    private String mFilter;
+    private String mSort;
 
     public BarcodeResultFragment() {
     }
@@ -130,6 +131,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mCurrentPage = savedInstanceState.getInt("current_page");
             mCategories.addAll(savedInstanceState.getParcelable("categories"));
             mFilter = savedInstanceState.getString("filter");
+            mSort = savedInstanceState.getString("sort");
         } else {
             mQuery = getArguments().getString("query");
             mIsBarcode = getArguments().getBoolean("is_barcode");
@@ -224,6 +226,14 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             }
         });
 
+        mResultsAdapter.setOnSortListener(new PriceCheckAdapter.OnSortListener() {
+            @Override
+            public void onSort(String type) {
+                mSort = type;
+                doSearch(mQuery, mIsBarcode);
+            }
+        });
+
         if(savedInstanceState != null) {
             mResultsAdapter.setHaveMoreItems(mCurrentPage < mResults.getPages());
             mResultsAdapter.setCategories(mCategories);
@@ -275,7 +285,12 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         outState.putParcelable("results", mResults);
         outState.putInt("current_page", mCurrentPage);
         outState.putParcelable("categories", mCategories);
-        outState.putString("filter", mFilter);
+        if(mFilter != null) {
+            outState.putString("filter", mFilter);
+        }
+        if(mSort != null) {
+            outState.putString("sort", mSort);
+        }
     }
 
     @Override
@@ -356,9 +371,9 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         try {
             if (page > 0) {
-                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, listener);
+                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mSort, listener);
             } else {
-                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, listener);
+                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mSort, listener);
             }
         } catch(IllegalStateException e) {
             Log.e(TAG, "Get price information error", e);

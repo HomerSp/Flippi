@@ -78,33 +78,16 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         HeaderViewHolder(View itemView, boolean isSavedList) {
             super(itemView);
 
+            final int sortKeysRes;
+            final int sortValuesRes;
+
             if(isSavedList) {
-                final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
-                final String[] sortValues = itemView.getResources().getStringArray(R.array.favorites_sort);
-
-                mSortSpinner = (AppCompatSpinner) itemView.findViewById(R.id.saved_row_header_sort);
-
-                mSortAdapter = FavoritesSortAdapter.createFromResource(itemView.getContext(),
-                        R.array.favorites_sort, R.layout.saved_list_row_header_sort);
-                mSortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                mSortSpinner.setAdapter(mSortAdapter);
-                mSortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                        String key = (sortKeys[pos].equals("reset")) ? null : sortKeys[pos];
-                        mSortAdapter.setSelected((key == null) ? null : sortValues[pos]);
-                        mSortAdapter.notifyDataSetChanged();
-                        if(mOnSortListener != null) {
-                            mOnSortListener.onSort(key);
-                        }
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
+                sortKeysRes = R.array.favorites_sort_key;
+                sortValuesRes = R.array.favorites_sort;
             } else {
+                sortKeysRes = R.array.search_sort_key;
+                sortValuesRes = R.array.search_sort;
+
                 mSpinner = (PriceCheckFilterSpinner) itemView.findViewById(R.id.search_row_filter);
 
                 mCategoriesAdapter = new PriceCheckFilterAdapter(itemView.getContext(), mSpinner);
@@ -120,11 +103,36 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     @Override
                     public void onNothingSelected() {
                         if(mOnFilterListener != null) {
-                            mOnFilterListener.onFilter("");
+                            mOnFilterListener.onFilter(null);
                         }
                     }
                 });
             }
+
+            final String[] sortKeys = itemView.getResources().getStringArray(sortKeysRes);
+            final String[] sortValues = itemView.getResources().getStringArray(sortValuesRes);
+
+            mSortSpinner = (AppCompatSpinner) itemView.findViewById(R.id.row_header_sort);
+            mSortAdapter = FavoritesSortAdapter.createFromResource(itemView.getContext(),
+                    sortValuesRes, R.layout.saved_list_row_header_sort);
+            mSortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            mSortSpinner.setAdapter(mSortAdapter);
+            mSortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                    String key = (sortKeys[pos].equals("reset")) ? null : sortKeys[pos];
+                    mSortAdapter.setSelected((key == null) ? null : sortValues[pos]);
+                    mSortAdapter.notifyDataSetChanged();
+                    if(mOnSortListener != null) {
+                        mOnSortListener.onSort(key);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
         }
 
         void setCategories(PriceCheckCategories categories) {
@@ -315,8 +323,6 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static class AdViewHolder extends RecyclerView.ViewHolder {
         AdViewHolder(View itemView) {
             super(itemView);
-
-            Log.d(TAG, "AdViewHolder");
 
             NativeExpressAdView ad = (NativeExpressAdView) itemView.findViewById(R.id.search_result_ad);
 

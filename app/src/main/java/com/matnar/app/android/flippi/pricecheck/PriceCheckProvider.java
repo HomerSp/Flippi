@@ -19,15 +19,15 @@ import java.util.Date;
 public abstract class PriceCheckProvider {
     private static final String TAG = "Flippi." + PriceCheckProvider.class.getSimpleName();
 
-    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, String filter, PriceCheckListener listener) {
-        getInformation(context, query, 0, database, filter, listener);
+    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
+        getInformation(context, query, 0, database, filter, sort, listener);
     }
 
-    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, String filter, PriceCheckListener listener) {
-        new PriceCheckTask(context, page, database, filter, listener).execute(query);
+    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
+        new PriceCheckTask(context, page, database, filter, sort, listener).execute(query);
     }
 
-    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter);
+    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, String sort);
 
     public interface PriceCheckListener {
         void onResult(PriceCheckItems result);
@@ -273,14 +273,16 @@ public abstract class PriceCheckProvider {
         private int mPage = 0;
         private PriceCheckDatabase mDatabase;
         private String mFilter;
+        private String mSort;
         private PriceCheckListener mListener;
         private PriceCheckRegion.Region mRegion;
 
-        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, String filter, PriceCheckListener listener) {
+        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
             mContext = context;
             mPage = page;
             mDatabase = database;
             mFilter = filter;
+            mSort = sort;
             mListener = listener;
             mRegion = PriceCheckRegion.getCurrent(context.get());
         }
@@ -293,7 +295,7 @@ public abstract class PriceCheckProvider {
             }
 
             PriceCheckProvider provider = new CeXPriceCheckProvider(mContext, mRegion);
-            return provider.lookup(query[0], mPage, mDatabase, mFilter);
+            return provider.lookup(query[0], mPage, mDatabase, mFilter, mSort);
         }
 
         @Override
