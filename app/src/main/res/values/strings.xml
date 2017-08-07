@@ -19,11 +19,11 @@
     <string name="header_right">Enter</string>
 
     <string name="main_fragment_phone_image">Flippi logo</string>
-    <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below.</string>
+    <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below. Or swipe left to see all categories.</string>
 
     <string name="search_hint">Search by title</string>
-    <string name="search_noresults">No results for %1$s.\nTry searching manually using the search bar above</string>
-    <string name="search_noresults_barcode">No results for barcode %1$s</string>
+    <string name="search_noresults">No results for %1$s.\nTry other search terms, or change the category above.</string>
+    <string name="search_noresults_barcode">No results for barcode %1$s. Try searching manually using the search bar above.</string>
     <string name="search_noresults_redo">Did you mean %1$s?</string>
 
     <string name="search_error">Error while searching for %1$s.</string>
@@ -35,8 +35,8 @@
     <string name="search_row_unstarred_clear_undo">Favourites have been cleared</string>
 
     <string name="search_row_header_results">Results</string>
-    <string name="search_row_filter_no">Select filter</string>
-    <string name="search_row_filter_clear">Clear filter</string>
+    <string name="search_row_filter_no">Categories</string>
+    <string name="search_row_filter_clear">Reset</string>
 
     <string name="search_row_sellprice">Sell Price: %1$s</string>
     <string name="search_row_cashprice">Cash</string>
