@@ -25,6 +25,7 @@ import com.matnar.app.android.flippi.view.adapter.PriceCheckAdapter;
 import com.matnar.app.android.flippi.view.decoration.PriceCheckDecoration;
 
 import java.lang.ref.WeakReference;
+import java.util.Random;
 
 public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + BarcodeResultFragment.class.getSimpleName();
@@ -312,6 +313,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                     return;
                 }
 
+                int previousSize = mResults.size();
                 mResults.addAll(results);
 
                 mResultsAdapter.setLoading(false);
@@ -321,7 +323,12 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                     mResultsAdapter.setNoResults(mResults.size() == 0);
                 }
 
-                if (results.size() > 0) {
+                if (results.size() > 0 && !mResults.hasError()) {
+                    if(mResults.size() > 4) {
+                        int r = previousSize + (((results.size() / 2) - (results.size() / 4)) + new Random().nextInt(results.size() / 2));
+                        mResults.add(r, new PriceCheckProvider.AdItem());
+                    }
+
                     mCurrentPage = page;
                     if(page == 0) {
                         mCurrentPage = 1;

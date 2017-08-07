@@ -20,6 +20,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.NativeExpressAdView;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckCategories;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
@@ -37,6 +39,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int TYPE_LOADING = 3;
     private static final int TYPE_NORESULTS = 4;
     private static final int TYPE_ERROR = 5;
+    private static final int TYPE_AD = 6;
 
     private int mShortAnimationDuration = 0;
 
@@ -309,6 +312,22 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    private static class AdViewHolder extends RecyclerView.ViewHolder {
+        AdViewHolder(View itemView) {
+            super(itemView);
+
+            Log.d(TAG, "AdViewHolder");
+
+            NativeExpressAdView ad = (NativeExpressAdView) itemView.findViewById(R.id.search_result_ad);
+
+            AdRequest adRequest = new AdRequest.Builder()
+                    .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
+                    .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
+                    .build();
+            ad.loadAd(adRequest);
+        }
+    }
+
     public PriceCheckAdapter(final RecyclerView recyclerView, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
         mShortAnimationDuration = recyclerView.getResources().getInteger(android.R.integer.config_shortAnimTime);
         mList = list;
@@ -375,6 +394,11 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     .inflate(R.layout.search_result_row_error, parent, false);
 
             return new ErrorViewHolder(itemView, mOnRetryListener);
+        } else if(viewType == TYPE_AD) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_ad, parent, false);
+
+            return new AdViewHolder(itemView);
         }
 
         throw new RuntimeException();
@@ -433,6 +457,8 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             return TYPE_HEADER;
         } else if(position == getItemCount() - 1) {
             return TYPE_FOOTER;
+        } else if(position > 0 && position < mList.size() && mList.get(position - 1) instanceof PriceCheckProvider.AdItem) {
+            return TYPE_AD;
         }
 
         return TYPE_ITEM;

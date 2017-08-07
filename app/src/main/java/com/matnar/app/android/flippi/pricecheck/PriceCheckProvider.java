@@ -130,7 +130,7 @@ public abstract class PriceCheckProvider {
         };
     }
 
-    public static final class PriceCheckItem implements Parcelable {
+    public static class PriceCheckItem implements Parcelable {
         private String mName;
         private String mCategory;
         private String mImage;
@@ -260,6 +260,12 @@ public abstract class PriceCheckProvider {
                 return new PriceCheckItem[size];
             }
         };
+    }
+
+    public static final class AdItem extends PriceCheckItem {
+        public AdItem() {
+            super("", "", "", "", 0.0f, 0.0f, 0.0f, "", PriceCheckRegion.Region.RegionUnknown);
+        }
     }
 
     private static class PriceCheckTask extends AsyncTask<String, Void, PriceCheckItems> {
