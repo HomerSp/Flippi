@@ -46,6 +46,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private boolean mIsBarcode = false;
     private String mQueryPending = null;
     private PriceCheckProvider.PriceCheckItems mResults = new PriceCheckProvider.PriceCheckItems();
+    private boolean mHaveResults = false;
+
     private int mCurrentPage = 0;
     private String mFilter;
     private String mSort;
@@ -129,6 +131,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mIsBarcode = savedInstanceState.getBoolean("is_barcode");
             mQueryPending = savedInstanceState.getString("query_pending", null);
             mResults.addAll(savedInstanceState.getParcelable("results"));
+            mHaveResults = savedInstanceState.getBoolean("have_results");
             mCurrentPage = savedInstanceState.getInt("current_page");
             mCategories.addAll(savedInstanceState.getParcelable("categories"));
             mFilter = savedInstanceState.getString("filter");
@@ -232,6 +235,10 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setOnSortListener(new PriceCheckAdapter.OnSortListener() {
             @Override
             public void onSort(String type) {
+                if((mSort == null && type == null) || (mSort != null && mSort.equals(type))) {
+                    return;
+                }
+
                 mSort = type;
                 doSearch(mQuery, mIsBarcode);
             }
@@ -251,7 +258,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         mResultsView.addItemDecoration(dividerItemDecoration);
 
         try {
-            if (savedInstanceState == null || mCurrentPage == 0) {
+            if (!mHaveResults && mSort == null) {
                 if(mCategories.size() == 0) {
                     new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
                             .setResultListener(new CategoryDatabase.GetAllListener() {
@@ -287,6 +294,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         }
 
         outState.putParcelable("results", mResults);
+        outState.putBoolean("have_results", mHaveResults);
         outState.putInt("current_page", mCurrentPage);
         outState.putParcelable("categories", mCategories);
         if(mFilter != null) {
@@ -329,6 +337,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         PriceCheckProvider.PriceCheckListener listener = new PriceCheckProvider.PriceCheckListener() {
             @Override
             public void onResult(PriceCheckProvider.PriceCheckItems results) {
+                mHaveResults = true;
+
                 if(getContext() == null) {
                     return;
                 }

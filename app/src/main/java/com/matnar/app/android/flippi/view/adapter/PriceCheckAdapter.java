@@ -166,8 +166,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 }
             }
 
-            mSortAdapter.setSelected(sort);
-            mSortSpinner.setSelection(i);
+            if(i < sortKeys.length) {
+                mSortAdapter.setSelected(sort);
+                mSortSpinner.setSelection(i);
+            }
         }
     }
 
