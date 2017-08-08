@@ -141,7 +141,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         void setCategories(PriceCheckCategories categories) {
-            if(categories == null) {
+            if(categories == null || categories.size() == 0) {
                 return;
             }
 
@@ -358,38 +358,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-    public PriceCheckAdapter(final RecyclerView recyclerView, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
-        mShortAnimationDuration = recyclerView.getResources().getInteger(android.R.integer.config_shortAnimTime);
+    public PriceCheckAdapter(Context context, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
+        mShortAnimationDuration = context.getResources().getInteger(android.R.integer.config_shortAnimTime);
         mList = list;
         mIsSavedList = isSavedList;
-
-        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                mTotalItemCount = linearLayoutManager.getItemCount();
-                mLastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                if (mList.size() > 0 && mHaveMoreItems && !mIsLoadingMore && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
-                    if (mLoadMoreListener != null) {
-                        mLoadMoreListener.onLoadMore();
-                    }
-
-                    mIsLoadingMore = true;
-                    for(int i = 0; i < getItemCount(); i++) {
-                        if(getItemViewType(i) == TYPE_FOOTER) {
-                            final int index = i;
-                            recyclerView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    notifyItemChanged(index);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        });
     }
 
     @Override
@@ -492,6 +464,36 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         return TYPE_ITEM;
+    }
+
+    public void initView(final RecyclerView recyclerView) {
+        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                mTotalItemCount = linearLayoutManager.getItemCount();
+                mLastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                if (mList.size() > 0 && mHaveMoreItems && !mIsLoadingMore && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
+                    if (mLoadMoreListener != null) {
+                        mLoadMoreListener.onLoadMore();
+                    }
+
+                    mIsLoadingMore = true;
+                    for(int i = 0; i < getItemCount(); i++) {
+                        if(getItemViewType(i) == TYPE_FOOTER) {
+                            final int index = i;
+                            recyclerView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyItemChanged(index);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void notifyItemChanged(PriceCheckProvider.PriceCheckItem item) {

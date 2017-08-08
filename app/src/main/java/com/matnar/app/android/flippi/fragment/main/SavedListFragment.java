@@ -46,48 +46,10 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        try {
-            mFooter = super.setFooter(R.layout.saved_list_footer);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(true);
-            super.showSearchItem(false);
-            super.setToolbarScroll(true);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-        mView = inflater.inflate(R.layout.fragment_main_saved_list, container, false);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-
-        mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
-        mResultsView.setLayoutManager(layoutManager);
-        mResultsView.setItemAnimator(new DefaultItemAnimator());
-        mResultsView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                if(getContext() == null) {
-                    return;
-                }
-
-                try {
-                    if(dy > 0) {
-                        SavedListFragment.super.showFab(false);
-                    } else if(dy < 0) {
-                        SavedListFragment.super.showFab(true);
-                    }
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Show fab error", e);
-                }
-            }
-        });
 
         if(savedInstanceState != null) {
             mResults.addAll(savedInstanceState.getParcelable("results"));
@@ -95,7 +57,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
             mHaveResults = savedInstanceState.getBoolean("have_results");
         }
 
-        mResultsAdapter = new PriceCheckAdapter(mResultsView, mResults, true);
+        mResultsAdapter = new PriceCheckAdapter(getContext(), mResults, true);
         mResultsAdapter.setOnStarredListener(new PriceCheckAdapter.OnStarredListener() {
             @Override
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
@@ -181,7 +143,51 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
         if(mSort != null) {
             mResultsAdapter.setSort(mSort);
         }
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        try {
+            mFooter = super.setFooter(R.layout.saved_list_footer);
+            super.setFabIcon(R.drawable.ic_fab_camera);
+            super.showClearFavorites(true);
+            super.showSearchItem(false);
+            super.setToolbarScroll(true);
+        } catch(IllegalStateException e) {
+            Log.e(TAG, "Create view error", e);
+            return null;
+        }
+
+        mView = inflater.inflate(R.layout.fragment_main_saved_list, container, false);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+
+        mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
+        mResultsView.setLayoutManager(layoutManager);
+        mResultsView.setItemAnimator(new DefaultItemAnimator());
+        mResultsView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if(getContext() == null) {
+                    return;
+                }
+
+                try {
+                    if(dy > 0) {
+                        SavedListFragment.super.showFab(false);
+                    } else if(dy < 0) {
+                        SavedListFragment.super.showFab(true);
+                    }
+                } catch(IllegalStateException e) {
+                    Log.e(TAG, "Show fab error", e);
+                }
+            }
+        });
+
+        mResultsAdapter.initView(mResultsView);
         mResultsView.setAdapter(mResultsAdapter);
 
         PriceCheckDecoration dividerItemDecoration = new PriceCheckDecoration(getContext(),

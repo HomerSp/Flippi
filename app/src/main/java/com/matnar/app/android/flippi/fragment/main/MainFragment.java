@@ -1,6 +1,7 @@
 package com.matnar.app.android.flippi.fragment.main;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -14,6 +15,9 @@ import android.view.ViewGroup;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + MainFragment.class.getSimpleName();
 
@@ -21,11 +25,17 @@ public class MainFragment extends MainActivity.MainActivityFragment {
     private PagerAdapter mAdapter;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mAdapter = new MainFragmentAdapter(getChildFragmentManager());
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         mView = (ViewPager) inflater.inflate(R.layout.fragment_main, container, false);
-        mAdapter = new MainFragmentAdapter(getChildFragmentManager());
         mView.setAdapter(mAdapter);
 
         return mView;
@@ -42,7 +52,16 @@ public class MainFragment extends MainActivity.MainActivityFragment {
         return false;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle bundle) {
+        super.onSaveInstanceState(bundle);
+
+        bundle.putParcelable("fragments", mAdapter.saveState());
+    }
+
     private class MainFragmentAdapter extends FragmentStatePagerAdapter {
+        private List<Fragment> mFragments = new ArrayList<>();
+
         MainFragmentAdapter(FragmentManager fm) {
             super(fm);
         }

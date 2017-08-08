@@ -26,8 +26,19 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
     private TextView mSearchView;
     private AdView mAdView;
 
+    private String mQuery;
+
     public MainContentFragment() {
         super();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if(savedInstanceState != null) {
+            mQuery = savedInstanceState.getString("search_query", "");
+        }
     }
 
     @Override
@@ -74,11 +85,7 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
             }
         });
 
-        if(savedInstanceState != null) {
-            mSearchView.setText(savedInstanceState.getString("search_query"));
-        } else {
-            mSearchView.setText("");
-        }
+        mSearchView.setText(mQuery);
 
         mSearchView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override

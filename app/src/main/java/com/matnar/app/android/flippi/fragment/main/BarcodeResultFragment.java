@@ -57,74 +57,11 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            super.showSearchItem(true);
-            super.setToolbarScroll(true);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
         mRevealAnimationDuration = getResources().getInteger(R.integer.reveal_anim_duration);
-
-        mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
-
-        if(savedInstanceState == null && getArguments().containsKey("cx")) {
-            mView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop,
-                                           int oldRight, int oldBottom) {
-                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
-                        return;
-                    }
-
-                    v.removeOnLayoutChangeListener(this);
-                    int cx = getArguments().getInt("cx");
-                    int cy = getArguments().getInt("cy");
-
-                    // get the hypothenuse so the radius is from one corner to the other
-                    int radius = (int) Math.hypot(right, bottom);
-
-                    Animator reveal = null;
-                    reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
-                    reveal.setInterpolator(new DecelerateInterpolator(2f));
-                    reveal.setDuration(mRevealAnimationDuration);
-                    reveal.start();
-                }
-            });
-        }
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-
-        mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
-        mResultsView.setLayoutManager(layoutManager);
-        mResultsView.setItemAnimator(new DefaultItemAnimator());
-        mResultsView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                if(getContext() == null) {
-                    return;
-                }
-
-                try {
-                    if (dy > 0) {
-                        BarcodeResultFragment.super.showFab(false);
-                    } else if (dy < 0) {
-                        BarcodeResultFragment.super.showFab(true);
-                    }
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Show fab error", e);
-                }
-            }
-        });
 
         if(savedInstanceState != null) {
             mQuery = savedInstanceState.getString("query");
@@ -143,15 +80,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mIsCategory = getArguments().getBoolean("is_category", false);
         }
 
-        if(mIsBarcode) {
-            try {
-                super.setSearchQuery(null);
-            } catch(IllegalStateException e) {
-                Log.e(TAG, "Setting search error", e);
-            }
-        }
-
-        mResultsAdapter = new PriceCheckAdapter(mResultsView, mResults, false);
+        mResultsAdapter = new PriceCheckAdapter(getContext(), mResults, false);
         mResultsAdapter.setOnLoadMoreListener(new PriceCheckAdapter.OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
@@ -243,6 +172,84 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                 doSearch(mQuery, mIsBarcode);
             }
         });
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        try {
+            super.setFooter(0);
+            super.setFabIcon(R.drawable.ic_fab_camera);
+            super.showClearFavorites(false);
+            super.showSearchItem(true);
+            super.setToolbarScroll(true);
+        } catch(IllegalStateException e) {
+            Log.e(TAG, "Create view error", e);
+            return null;
+        }
+
+        mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
+
+        if(savedInstanceState == null && getArguments().containsKey("cx")) {
+            mView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop,
+                                           int oldRight, int oldBottom) {
+                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        return;
+                    }
+
+                    v.removeOnLayoutChangeListener(this);
+                    int cx = getArguments().getInt("cx");
+                    int cy = getArguments().getInt("cy");
+
+                    // get the hypothenuse so the radius is from one corner to the other
+                    int radius = (int) Math.hypot(right, bottom);
+
+                    Animator reveal = null;
+                    reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
+                    reveal.setInterpolator(new DecelerateInterpolator(2f));
+                    reveal.setDuration(mRevealAnimationDuration);
+                    reveal.start();
+                }
+            });
+        }
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+
+        mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
+        mResultsView.setLayoutManager(layoutManager);
+        mResultsView.setItemAnimator(new DefaultItemAnimator());
+        mResultsView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if(getContext() == null) {
+                    return;
+                }
+
+                try {
+                    if (dy > 0) {
+                        BarcodeResultFragment.super.showFab(false);
+                    } else if (dy < 0) {
+                        BarcodeResultFragment.super.showFab(true);
+                    }
+                } catch(IllegalStateException e) {
+                    Log.e(TAG, "Show fab error", e);
+                }
+            }
+        });
+
+        mResultsAdapter.initView(mResultsView);
+
+        if(mIsBarcode) {
+            try {
+                super.setSearchQuery(null);
+            } catch(IllegalStateException e) {
+                Log.e(TAG, "Setting search error", e);
+            }
+        }
 
         if(savedInstanceState != null) {
             if(mHaveResults) {
@@ -257,11 +264,11 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
             mResultsAdapter.setHaveMoreItems(mCurrentPage < mResults.getPages());
             mResultsAdapter.setHasCategory(mFilter != null);
-            mResultsAdapter.setCategories(mCategories);
-            mResultsAdapter.setFilter(mFilter);
-            mResultsAdapter.setSort(mSort);
         }
 
+        mResultsAdapter.setCategories(mCategories);
+        mResultsAdapter.setFilter(mFilter);
+        mResultsAdapter.setSort(mSort);
         mResultsAdapter.setLoading(true);
         mResultsView.setAdapter(mResultsAdapter);
 
@@ -294,6 +301,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                     doSearch(mQuery, mIsBarcode);
                 }
             } else {
+                mResultsAdapter.setLoading(false);
                 update();
             }
         } catch(IllegalStateException e) {
