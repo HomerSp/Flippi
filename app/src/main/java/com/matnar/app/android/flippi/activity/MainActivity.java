@@ -517,11 +517,17 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        mSearchView.setQuery(q, false);
-        mSearchView.setIconified(false);
-        mSearchView.clearFocus();
+        if(q == null) {
+            mSearchView.setQuery("", false);
+            mSearchView.setIconified(true);
+            mSearchView.clearFocus();
+        } else {
+            mSearchView.setQuery(q, false);
+            mSearchView.setIconified(false);
+            mSearchView.clearFocus();
+        }
 
-        if(mSearchItem != null && q.length() == 0) {
+        if(mSearchItem != null && q == null) {
             mSearchItem.collapseActionView();
         }
     }

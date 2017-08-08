@@ -145,7 +145,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         if(mIsBarcode) {
             try {
-                super.setSearchQuery("");
+                super.setSearchQuery(null);
             } catch(IllegalStateException e) {
                 Log.e(TAG, "Setting search error", e);
             }
