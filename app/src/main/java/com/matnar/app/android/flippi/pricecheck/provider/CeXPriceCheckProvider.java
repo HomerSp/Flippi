@@ -139,14 +139,12 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         double buyPrice = 0.0f;
         double buyVoucherPrice = 0.0f;
 
-        if(prices.size() > 0) {
+        try {
             sellPrice = getRegionalPrice(prices.get(0));
-        }
-        if(prices.size() > 1) {
             buyPrice = getRegionalPrice(prices.get(1));
-        }
-        if(prices.size() > 2) {
             buyVoucherPrice = getRegionalPrice(prices.get(2));
+        } catch(IndexOutOfBoundsException e) {
+            // Empty
         }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);

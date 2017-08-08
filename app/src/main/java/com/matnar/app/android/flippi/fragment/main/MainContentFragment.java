@@ -19,14 +19,14 @@ import com.google.android.gms.ads.AdView;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
 
-public class MainFragment extends MainActivity.MainActivityFragment {
-    private static final String TAG = "Flippi." + MainFragment.class.getSimpleName();
+public class MainContentFragment extends MainActivity.MainActivityFragment {
+    private static final String TAG = "Flippi." + MainContentFragment.class.getSimpleName();
 
     private View mView;
     private TextView mSearchView;
     private AdView mAdView;
 
-    public MainFragment() {
+    public MainContentFragment() {
         super();
     }
 
@@ -44,7 +44,7 @@ public class MainFragment extends MainActivity.MainActivityFragment {
             return null;
         }
 
-        mView = inflater.inflate(R.layout.fragment_main, container, false);
+        mView = inflater.inflate(R.layout.fragment_main_content, container, false);
 
         TextView appnameview = (TextView) mView.findViewById(R.id.main_fragment_appname);
         Typeface typeface = Typeface.createFromAsset(mView.getContext().getAssets(), "font/Lobster_1_4.otf");
@@ -66,8 +66,8 @@ public class MainFragment extends MainActivity.MainActivityFragment {
                 imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
 
                 try {
-                    MainFragment.super.setSearchQuery(mSearchView.getText().toString());
-                    MainFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
+                    MainContentFragment.super.setSearchQuery(mSearchView.getText().toString());
+                    MainContentFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Search button click error", e);
                 }

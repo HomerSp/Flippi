@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/main_fragment_background"
     android:fitsSystemWindows="true"
-    tools:context=".fragment.main.MainFragment">
+    tools:context=".fragment.main.MainContentFragment">
 
     <RelativeLayout
         android:id="@+id/ad_layout"

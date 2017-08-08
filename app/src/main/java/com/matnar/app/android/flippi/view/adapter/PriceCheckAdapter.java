@@ -59,9 +59,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private String mQuery;
     private boolean mIsBarcode = false;
+    private boolean mIsCategory = false;
+
     private boolean mIsLoading = false;
     private boolean mNoResults = false;
     private boolean mError = false;
+    private boolean mHasCategory = false;
 
     private boolean mHaveMoreItems = true;
     private boolean mIsLoadingMore = false;
@@ -149,7 +152,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         void setSort(String sort) {
-            final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+            final String[] sortKeys;
+            if(mIsSavedList) {
+                sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+            } else {
+                sortKeys = itemView.getResources().getStringArray(R.array.search_sort_key);
+            }
 
             int i;
             for(i = 0; i < sortKeys.length; i++) {
@@ -289,7 +297,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mTextView.setText(R.string.savedlist_noresults);
         }
 
-        void setQuery(String query, boolean isBarcode) {
+        void setQuery(String query, boolean isBarcode, boolean isCategory, boolean hasCategory) {
+            if(isCategory) {
+                mTextView.setText(mTextView.getContext().getString((hasCategory) ? R.string.search_noresults_category : R.string.search_category));
+                return;
+            }
+
             mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_noresults_barcode : R.string.search_noresults, query));
         }
     }
@@ -315,7 +328,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mTextView.setText(R.string.savedlist_error);
         }
 
-        void setQuery(String query, boolean isBarcode) {
+        void setQuery(String query, boolean isBarcode, boolean isCategory, boolean hasCategory) {
+            if(isCategory) {
+                mTextView.setText(mTextView.getContext().getString((hasCategory) ? R.string.search_error_category : R.string.search_category));
+                return;
+            }
+
             mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_error_barcode : R.string.search_error, query));
         }
     }
@@ -431,13 +449,13 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             if(mIsSavedList) {
                 ((NoResultsViewHolder) holder).setQuery();
             } else {
-                ((NoResultsViewHolder) holder).setQuery(mQuery, mIsBarcode);
+                ((NoResultsViewHolder) holder).setQuery(mQuery, mIsBarcode, mIsCategory, mHasCategory);
             }
         } else if(holder instanceof ErrorViewHolder) {
             if(mIsSavedList) {
                 ((ErrorViewHolder) holder).setQuery();
             } else {
-                ((ErrorViewHolder) holder).setQuery(mQuery, mIsBarcode);
+                ((ErrorViewHolder) holder).setQuery(mQuery, mIsBarcode, mIsCategory, mHasCategory);
             }
         }
     }
@@ -478,9 +496,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         super.notifyItemRemoved(mList.indexOf(item) + 1);
     }
 
-    public void setQuery(String query, boolean isBarcode) {
+    public void setQuery(String query, boolean isBarcode, boolean isCategory) {
         mQuery = query;
         mIsBarcode = isBarcode;
+        mIsCategory = isCategory;
     }
 
     public void setLoading(boolean l) {
@@ -539,6 +558,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 break;
             }
         }
+    }
+
+    public void setHasCategory(boolean b) {
+        mHasCategory = b;
     }
 
     public void setOnLoadMoreListener(OnLoadMoreListener listener) {

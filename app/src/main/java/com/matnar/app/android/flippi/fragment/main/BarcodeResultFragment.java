@@ -49,6 +49,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private int mCurrentPage = 0;
     private String mFilter;
     private String mSort;
+    private boolean mIsCategory = false;
 
     public BarcodeResultFragment() {
     }
@@ -132,9 +133,11 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mCategories.addAll(savedInstanceState.getParcelable("categories"));
             mFilter = savedInstanceState.getString("filter");
             mSort = savedInstanceState.getString("sort");
+            mIsCategory = savedInstanceState.getBoolean("is_category");
         } else {
             mQuery = getArguments().getString("query");
-            mIsBarcode = getArguments().getBoolean("is_barcode");
+            mIsBarcode = getArguments().getBoolean("is_barcode", false);
+            mIsCategory = getArguments().getBoolean("is_category", false);
         }
 
         if(mIsBarcode) {
@@ -238,6 +241,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mResultsAdapter.setHaveMoreItems(mCurrentPage < mResults.getPages());
             mResultsAdapter.setCategories(mCategories);
             mResultsAdapter.setFilter(mFilter);
+            mResultsAdapter.setSort(mSort);
         }
 
         mResultsView.setAdapter(mResultsAdapter);
@@ -310,7 +314,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         mCurrentPage = 0;
         mResults.clear();
         mResultsAdapter.setHaveMoreItems(true);
-        mResultsAdapter.setQuery(mQuery, mIsBarcode);
+        mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
+        mResultsAdapter.setHasCategory(mFilter != null);
         mResultsAdapter.setLoading(true);
         mResultsAdapter.setNoResults(false);
         mResultsAdapter.setError(false);
@@ -339,11 +344,15 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                 }
 
                 if (results.size() > 0 && !mResults.hasError()) {
-                    if(mResults.size() > 4) {
-                        int r = previousSize + (((results.size() / 2) - (results.size() / 4)) + new Random().nextInt(results.size() / 2));
-                        if(r >= 0 && r < mResults.size()) {
-                            mResults.add(r, new PriceCheckProvider.AdItem());
+                    try {
+                        if (mResults.size() > 4) {
+                            int r = previousSize + (((results.size() / 2) - (results.size() / 4)) + new Random().nextInt(results.size() / 2));
+                            if (r >= 0 && r < mResults.size()) {
+                                mResults.add(r, new PriceCheckProvider.AdItem());
+                            }
                         }
+                    } catch(IllegalArgumentException e) {
+                        // Empty
                     }
 
                     mCurrentPage = page;

@@ -258,6 +258,13 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if(currentFragment != null && currentFragment instanceof MainActivityFragment) {
+                if(((MainActivityFragment) currentFragment).onBackPressed()) {
+                    return;
+                }
+            }
+
             super.onBackPressed();
         }
     }
@@ -647,6 +654,14 @@ public class MainActivity extends AppCompatActivity
 
         protected CategoryDatabase getCategoryDatabase() {
             return getMainActivity().getCategoryDatabase();
+        }
+
+        protected FragmentManager getSupportFragmentManager() {
+            return getMainActivity().getSupportFragmentManager();
+        }
+
+        protected boolean onBackPressed() {
+            return false;
         }
 
         protected void setToolbarScroll(boolean enable) {
