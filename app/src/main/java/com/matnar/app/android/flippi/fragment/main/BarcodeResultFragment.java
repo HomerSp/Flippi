@@ -262,6 +262,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             mResultsAdapter.setSort(mSort);
         }
 
+        mResultsAdapter.setLoading(true);
         mResultsView.setAdapter(mResultsAdapter);
 
         PriceCheckDecoration dividerItemDecoration = new PriceCheckDecoration(getContext(),
@@ -277,6 +278,14 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                                 public void onResult(PriceCheckCategories results) {
                                     mCategories.addAll(results);
                                     mResultsAdapter.setCategories(mCategories);
+                                    if(mQuery == null && mFilter == null) {
+                                        mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
+                                        mResultsAdapter.setHasCategory(false);
+                                        mResultsAdapter.setNoResults(true);
+                                        mResultsAdapter.setLoading(false);
+                                        return;
+                                    }
+
                                     doSearch(mQuery, mIsBarcode);
                                 }
                             })

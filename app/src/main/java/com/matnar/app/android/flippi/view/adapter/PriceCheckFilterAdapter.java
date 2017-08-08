@@ -27,13 +27,17 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
             mName = (TextView) view.findViewById(R.id.header_name);
         }
 
-        public void setItem(FilterItem item) {
+        void setItem(FilterItem item) {
             if(item == null) {
                 mName.setText(R.string.search_row_filter_no);
                 return;
             }
 
             mName.setText(item.getName());
+        }
+
+        void setEnabled(boolean b) {
+            mName.setEnabled(b);
         }
     }
 
@@ -58,15 +62,15 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
             mFilterExpand = mItem.findViewById(R.id.filter_expand);
         }
 
-        public int getPosition() {
+        int getPosition() {
             return mPosition;
         }
 
-        public void setPosition(int pos) {
+        void setPosition(int pos) {
             mPosition = pos;
         }
 
-        public void setHeader(FilterItem item) {
+        void setHeader(FilterItem item) {
             mHeader.setVisibility(View.VISIBLE);
             mItem.setVisibility(View.GONE);
             mHeaderName.setText(item.getName());
@@ -86,6 +90,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
     private List<FilterItem> mItems = new ArrayList<>();
     private FilterItem mCurrent = null;
     private FilterItem mSelected = null;
+    private boolean mEnabled = true;
 
     private OnItemClickListener mOnItemClickListener = null;
 
@@ -123,6 +128,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
         FilterItemViewHolder vh = (FilterItemViewHolder) view.getTag();
         vh.setItem(mSelected);
+        vh.setEnabled(mEnabled);
 
         return view;
     }
@@ -176,6 +182,10 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
         for(FilterItem item: mItems) {
             updateFilter(filter, item);
         }
+    }
+
+    public void setEnabled(boolean b) {
+        mEnabled = b;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {

@@ -92,8 +92,10 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 sortValuesRes = R.array.search_sort;
 
                 mSpinner = (PriceCheckFilterSpinner) itemView.findViewById(R.id.search_row_filter);
+                mSpinner.setEnabled(false);
 
                 mCategoriesAdapter = new PriceCheckFilterAdapter(itemView.getContext(), mSpinner);
+                mCategoriesAdapter.setEnabled(false);
                 mSpinner.setAdapter(mCategoriesAdapter);
                 mSpinner.setOnItemSelectedListener(new PriceCheckFilterSpinner.OnItemSelectedListener() {
                     @Override
@@ -145,6 +147,8 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             mCategoriesAdapter.setItems(categories);
             mCategoriesAdapter.notifyDataSetChanged();
+            mSpinner.setEnabled(true);
+            mCategoriesAdapter.setEnabled(true);
         }
 
         void setFilter(String filter) {
