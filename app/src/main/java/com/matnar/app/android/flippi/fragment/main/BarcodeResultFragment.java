@@ -341,7 +341,9 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                 if (results.size() > 0 && !mResults.hasError()) {
                     if(mResults.size() > 4) {
                         int r = previousSize + (((results.size() / 2) - (results.size() / 4)) + new Random().nextInt(results.size() / 2));
-                        mResults.add(r, new PriceCheckProvider.AdItem());
+                        if(r >= 0 && r < mResults.size()) {
+                            mResults.add(r, new PriceCheckProvider.AdItem());
+                        }
                     }
 
                     mCurrentPage = page;
