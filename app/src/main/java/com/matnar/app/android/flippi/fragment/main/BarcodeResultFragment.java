@@ -245,7 +245,18 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         });
 
         if(savedInstanceState != null) {
+            if(mHaveResults) {
+                mResultsAdapter.setLoading(false);
+                if(mResults.hasError()) {
+                    mResultsAdapter.setError(true);
+                } else {
+                    mResultsAdapter.setNoResults(mResults.size() == 0);
+                }
+            }
+
+            mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
             mResultsAdapter.setHaveMoreItems(mCurrentPage < mResults.getPages());
+            mResultsAdapter.setHasCategory(mFilter != null);
             mResultsAdapter.setCategories(mCategories);
             mResultsAdapter.setFilter(mFilter);
             mResultsAdapter.setSort(mSort);
@@ -289,6 +300,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
         outState.putString("query", mQuery);
         outState.putBoolean("is_barcode", mIsBarcode);
+        outState.putBoolean("is_category", mIsCategory);
         if(mQueryPending != null) {
             outState.putString("query_string", mQueryPending);
         }
