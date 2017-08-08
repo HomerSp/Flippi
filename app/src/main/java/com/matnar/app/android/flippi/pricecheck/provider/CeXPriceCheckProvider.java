@@ -33,7 +33,10 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         SQLiteDatabase db = database.getWritableDatabase();
 
         try {
-            Connection connection = Jsoup.connect(getSearchURL()).data("stext", name);
+            Connection connection = Jsoup.connect(getSearchURL());
+            if(name != null) {
+                connection.data("stext", name);
+            }
             if(page > 0) {
                 connection.data("page", Integer.toString(page));
             }
@@ -131,16 +134,19 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         String sku = sanitizer.getValue("sku");
 
         Elements prices = row.select("div.desc > div.prodPrice div.priceTxt");
-        if(prices.size() != 3) {
-            return null;
+
+        double sellPrice = 0.0f;
+        double buyPrice = 0.0f;
+        double buyVoucherPrice = 0.0f;
+
+        if(prices.size() > 0) {
+            sellPrice = getRegionalPrice(prices.get(0));
         }
-
-        double sellPrice = getRegionalPrice(prices.get(0));
-        double buyPrice = getRegionalPrice(prices.get(1));
-        double buyVoucherPrice = getRegionalPrice(prices.get(2));
-
-        if(sellPrice == 0 || buyPrice == 0 || buyVoucherPrice == 0) {
-            return null;
+        if(prices.size() > 1) {
+            buyPrice = getRegionalPrice(prices.get(1));
+        }
+        if(prices.size() > 2) {
+            buyVoucherPrice = getRegionalPrice(prices.get(2));
         }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
@@ -160,10 +166,6 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         double sellPrice = getRegionalPrice(product.select("#Asellprice").first());
         double buyPrice = getRegionalPrice(product.select("#Acashprice").first());
         double buyVoucherPrice = getRegionalPrice(product.select("#Aexchprice").first());
-
-        if(sellPrice == 0 || buyPrice == 0 || buyVoucherPrice == 0) {
-            return null;
-        }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
