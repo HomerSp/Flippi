@@ -52,7 +52,9 @@
                 android:id="@+id/search_row_sellprice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/search_row_subtext"/>
+                android:layout_marginTop="4dp"
+                android:textSize="@dimen/search_row_sellprice"
+                android:textStyle="bold"/>
 
         </LinearLayout>
 
