@@ -38,7 +38,7 @@ import com.jakewharton.picasso.OkHttp3Downloader;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.db.CategoryDatabase;
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
-import com.matnar.app.android.flippi.fragment.main.BarcodeResultFragment;
+import com.matnar.app.android.flippi.fragment.main.SearchResultFragment;
 import com.matnar.app.android.flippi.fragment.main.BarcodeScanFragment;
 import com.matnar.app.android.flippi.fragment.main.MainFragment;
 import com.matnar.app.android.flippi.fragment.main.SavedListFragment;
@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onBackStackChanged() {
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                if(currentFragment != null && !(currentFragment instanceof BarcodeResultFragment) && currentFragment.isVisible() && mFAB.getVisibility() != View.VISIBLE) {
+                if(currentFragment != null && !(currentFragment instanceof SearchResultFragment) && currentFragment.isVisible() && mFAB.getVisibility() != View.VISIBLE) {
                     mFAB.show();
                 }
             }
@@ -436,12 +436,12 @@ public class MainActivity extends AppCompatActivity
 
     private void doSearch(String query, boolean isBarcode, int cx, int cy) {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if(currentFragment != null && currentFragment instanceof BarcodeResultFragment && currentFragment.isVisible()) {
-            ((BarcodeResultFragment)currentFragment).doSearch(query, isBarcode);
+        if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
+            ((SearchResultFragment)currentFragment).doSearch(query, isBarcode);
         } else {
             getSupportFragmentManager().popBackStackImmediate("fragment_barcode_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-            BarcodeResultFragment fragment = new BarcodeResultFragment();
+            SearchResultFragment fragment = new SearchResultFragment();
 
             Bundle args = new Bundle();
             args.putString("query", query);
@@ -484,8 +484,14 @@ public class MainActivity extends AppCompatActivity
 
     private void setToolbarScroll(boolean enable) {
         AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-        params.setScrollFlags((enable) ? (AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS) : 0);
+        params.setScrollFlags(0);
         mToolbar.setLayoutParams(params);
+
+        if(enable) {
+            params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
+            params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS_COLLAPSED);
+            mToolbar.setLayoutParams(params);
+        }
     }
 
     private void setFabIcon(final int res) {

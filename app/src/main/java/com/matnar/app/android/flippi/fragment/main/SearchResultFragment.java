@@ -27,8 +27,8 @@ import com.matnar.app.android.flippi.view.decoration.PriceCheckDecoration;
 import java.lang.ref.WeakReference;
 import java.util.Random;
 
-public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
-    private static final String TAG = "Flippi." + BarcodeResultFragment.class.getSimpleName();
+public class SearchResultFragment extends MainActivity.MainActivityFragment {
+    private static final String TAG = "Flippi." + SearchResultFragment.class.getSimpleName();
 
     private View mView;
 
@@ -53,7 +53,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
     private String mSort;
     private boolean mIsCategory = false;
 
-    public BarcodeResultFragment() {
+    public SearchResultFragment() {
     }
 
     @Override
@@ -95,7 +95,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
                 try {
                     item.setSaved(starred);
-                    new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                    new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Setting favourites error", e);
                     return;
@@ -114,7 +114,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(false);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo favourite error", e);
                             }
@@ -135,7 +135,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                             try {
                                 item.setSaved(true);
                                 mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(BarcodeResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                             } catch(IllegalStateException e) {
                                 Log.e(TAG, "Undo unfavourite error", e);
                             }
@@ -157,7 +157,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setOnRetryListener(new PriceCheckAdapter.OnRetryListener() {
             @Override
             public void onRetry() {
-                BarcodeResultFragment.this.doSearch(mQuery, mIsBarcode);
+                SearchResultFragment.this.doSearch(mQuery, mIsBarcode);
             }
         });
 
@@ -233,9 +233,9 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
 
                 try {
                     if (dy > 0) {
-                        BarcodeResultFragment.super.showFab(false);
+                        SearchResultFragment.super.showFab(false);
                     } else if (dy < 0) {
-                        BarcodeResultFragment.super.showFab(true);
+                        SearchResultFragment.super.showFab(true);
                     }
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Show fab error", e);
@@ -410,8 +410,8 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                         public void onResult(BarcodeProvider.BarcodeInformation result) {
                             if (result != null) {
                                 mQueryPending = result.getName();
-                                BarcodeResultFragment.super.setSearchQuery(mQueryPending);
-                                BarcodeResultFragment.this.doSearch(mQueryPending, false);
+                                SearchResultFragment.super.setSearchQuery(mQueryPending);
+                                SearchResultFragment.this.doSearch(mQueryPending, false);
                             } else {
                                 update();
                             }

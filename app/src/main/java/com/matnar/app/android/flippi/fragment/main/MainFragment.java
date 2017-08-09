@@ -1,13 +1,11 @@
 package com.matnar.app.android.flippi.fragment.main;
 
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -124,7 +122,7 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
                     return new MainContentFragment();
                 }
                 case 1: {
-                    BarcodeResultFragment fragment = new BarcodeResultFragment();
+                    SearchResultFragment fragment = new SearchResultFragment();
 
                     Bundle args = new Bundle();
                     args.putBoolean("is_category", true);
