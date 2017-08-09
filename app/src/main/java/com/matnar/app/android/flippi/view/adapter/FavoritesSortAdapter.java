@@ -16,7 +16,7 @@ import com.matnar.app.android.flippi.R;
 public class FavoritesSortAdapter extends ArrayAdapter<CharSequence> {
     private String mSelected = null;
 
-    public FavoritesSortAdapter(@NonNull Context context, @LayoutRes int resource, CharSequence[] strings) {
+    private FavoritesSortAdapter(@NonNull Context context, @LayoutRes int resource, CharSequence[] strings) {
         super(context, resource, strings);
     }
 

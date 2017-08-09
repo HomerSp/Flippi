@@ -206,8 +206,7 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
                     // get the hypothenuse so the radius is from one corner to the other
                     int radius = (int) Math.hypot(right, bottom);
 
-                    Animator reveal = null;
-                    reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
+                    Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
                     reveal.setInterpolator(new DecelerateInterpolator(2f));
                     reveal.setDuration(mRevealAnimationDuration);
                     reveal.start();

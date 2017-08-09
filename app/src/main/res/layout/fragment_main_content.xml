@@ -101,6 +101,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/main_fragment_vertical_margin"
                 android:layout_marginBottom="@dimen/main_fragment_vertical_margin"
+                android:gravity="center"
                 android:text="@string/main_fragment_fastestway"
                 android:textColor="@android:color/background_light"/>
 

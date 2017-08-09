@@ -231,7 +231,7 @@ public class LicenseChecker implements ServiceConnection {
                         finishCheck(mValidator);
                     }
                     if (DEBUG_LICENSE_ERROR) {
-                        boolean logResponse;
+                        boolean logResponse = false;
                         String stringError = null;
                         switch (responseCode) {
                             case ERROR_CONTACTING_SERVER:
@@ -246,8 +246,6 @@ public class LicenseChecker implements ServiceConnection {
                                 logResponse = true;
                                 stringError = "ERROR_NON_MATCHING_UID";
                                 break;
-                            default:
-                                logResponse = false;
                         }
 
                         if (logResponse) {
