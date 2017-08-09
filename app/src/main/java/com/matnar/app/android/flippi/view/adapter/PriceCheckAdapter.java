@@ -1,8 +1,12 @@
 package com.matnar.app.android.flippi.view.adapter;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.TransitionDrawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,10 +20,14 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.NativeExpressAdView;
 import com.matnar.app.android.flippi.R;
+import com.matnar.app.android.flippi.pricecheck.PriceCheckCategories;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
-import com.matnar.app.android.flippi.view.widget.SearchResultLayout;
+import com.matnar.app.android.flippi.view.widget.PriceCheckFilterSpinner;
+import com.squareup.okhttp.internal.framed.Header;
 import com.squareup.picasso.Picasso;
 
 public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -28,47 +36,143 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
     private static final int TYPE_FOOTER = 2;
+    private static final int TYPE_LOADING = 3;
+    private static final int TYPE_NORESULTS = 4;
+    private static final int TYPE_ERROR = 5;
+    private static final int TYPE_AD = 6;
+
+    private int mShortAnimationDuration = 0;
 
     private PriceCheckProvider.PriceCheckItems mList;
     private boolean mIsSavedList;
+
+    private PriceCheckCategories mCategories = null;
+
     private OnLoadMoreListener mLoadMoreListener;
     private OnStarredListener mOnStarredListener;
     private OnSortListener mOnSortListener;
+    private OnFilterListener mOnFilterListener;
+    private OnRetryListener mOnRetryListener;
+
+    private String mTempFilter;
+    private String mTempSort;
+
+    private String mQuery;
+    private boolean mIsBarcode = false;
+    private boolean mIsCategory = false;
+
+    private boolean mIsLoading = false;
+    private boolean mNoResults = false;
+    private boolean mError = false;
+    private boolean mHasCategory = false;
 
     private boolean mHaveMoreItems = true;
-    private boolean mIsLoading = true;
+    private boolean mIsLoadingMore = false;
     private int mVisibleThreshold = 5;
     private int mLastVisibleItem, mTotalItemCount;
 
     private class HeaderViewHolder extends RecyclerView.ViewHolder {
-        private boolean mIsSavedList;
+        private PriceCheckFilterSpinner mSpinner;
+        private PriceCheckFilterAdapter mCategoriesAdapter;
+
+        private AppCompatSpinner mSortSpinner;
+        private FavoritesSortAdapter mSortAdapter;
 
         HeaderViewHolder(View itemView, boolean isSavedList) {
             super(itemView);
 
-            mIsSavedList = isSavedList;
+            final int sortKeysRes;
+            final int sortValuesRes;
+
             if(isSavedList) {
-                final String[] sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+                sortKeysRes = R.array.favorites_sort_key;
+                sortValuesRes = R.array.favorites_sort;
+            } else {
+                sortKeysRes = R.array.search_sort_key;
+                sortValuesRes = R.array.search_sort;
 
-                AppCompatSpinner spinner = (AppCompatSpinner) itemView.findViewById(R.id.saved_row_header_sort);
+                mSpinner = (PriceCheckFilterSpinner) itemView.findViewById(R.id.search_row_filter);
+                mSpinner.setEnabled(false);
 
-                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(itemView.getContext(),
-                        R.array.favorites_sort, R.layout.saved_list_row_header_sort);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                mCategoriesAdapter = new PriceCheckFilterAdapter(itemView.getContext(), mSpinner);
+                mCategoriesAdapter.setEnabled(false);
+                mSpinner.setAdapter(mCategoriesAdapter);
+                mSpinner.setOnItemSelectedListener(new PriceCheckFilterSpinner.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                        if(mOnSortListener != null) {
-                            mOnSortListener.onSort(sortKeys[pos]);
+                    public void onItemSelected(String name) {
+                        if(mOnFilterListener != null) {
+                            mOnFilterListener.onFilter(name);
                         }
                     }
 
                     @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
+                    public void onNothingSelected() {
+                        if(mOnFilterListener != null) {
+                            mOnFilterListener.onFilter(null);
+                        }
                     }
                 });
+            }
+
+            final String[] sortKeys = itemView.getResources().getStringArray(sortKeysRes);
+            final String[] sortValues = itemView.getResources().getStringArray(sortValuesRes);
+
+            mSortSpinner = (AppCompatSpinner) itemView.findViewById(R.id.row_header_sort);
+            mSortAdapter = FavoritesSortAdapter.createFromResource(itemView.getContext(),
+                    sortValuesRes, R.layout.saved_list_row_header_sort);
+            mSortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            mSortSpinner.setAdapter(mSortAdapter);
+            mSortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                    String key = (sortKeys[pos].equals("reset")) ? null : sortKeys[pos];
+                    mSortAdapter.setSelected((key == null) ? null : sortValues[pos]);
+                    mSortAdapter.notifyDataSetChanged();
+                    if(mOnSortListener != null) {
+                        mOnSortListener.onSort(key);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+        }
+
+        void setCategories(PriceCheckCategories categories) {
+            if(categories == null || categories.size() == 0) {
+                return;
+            }
+
+            mCategoriesAdapter.setItems(categories);
+            mCategoriesAdapter.notifyDataSetChanged();
+            mSpinner.setEnabled(true);
+            mCategoriesAdapter.setEnabled(true);
+        }
+
+        void setFilter(String filter) {
+            mCategoriesAdapter.setFilter(filter);
+        }
+
+        void setSort(String sort) {
+            final String[] sortKeys;
+            if(mIsSavedList) {
+                sortKeys = itemView.getResources().getStringArray(R.array.favorites_sort_key);
+            } else {
+                sortKeys = itemView.getResources().getStringArray(R.array.search_sort_key);
+            }
+
+            int i;
+            for(i = 0; i < sortKeys.length; i++) {
+                if(sortKeys[i].equals(sort)) {
+                    break;
+                }
+            }
+
+            if(i < sortKeys.length) {
+                mSortAdapter.setSelected(sort);
+                mSortSpinner.setSelection(i);
             }
         }
     }
@@ -127,7 +231,20 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mInfo = info;
 
             if(mIsSavedList) {
-                mView.setForeground((info.isSaved()) ? new ColorDrawable(Color.argb(0, 0, 0, 0)) : new ColorDrawable(Color.argb(170, 240, 240, 240)));
+                int colorFrom = ((ColorDrawable) mView.getForeground()).getColor();
+                int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);
+
+                ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+                colorAnimation.setDuration(mShortAnimationDuration); // milliseconds
+                colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        mView.setForeground(new ColorDrawable((Integer) animator.getAnimatedValue()));
+                    }
+
+                });
+                colorAnimation.start();
             }
 
             mTitleView.setText(info.getName());
@@ -139,7 +256,11 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mVoucherPriceView.setText(PriceCheckRegion.getPrice(region, info.getBuyVoucherPrice()));
 
             mStarView.setTag(info.isSaved());
-            mStarView.setImageResource((info.isSaved()) ? R.drawable.ic_star_filled : R.drawable.ic_star_empty);
+            TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
+            star.resetTransition();
+            if(info.isSaved()) {
+                star.startTransition(1);
+            }
             mStarView.setOnClickListener(this);
 
             Picasso.with(context).load(info.getImage()).into(mImageView);
@@ -150,7 +271,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             if(view.equals(mStarView)) {
                 boolean starred = !(Boolean) mStarView.getTag();
                 mStarView.setTag(starred);
-                mStarView.setImageResource((starred) ? R.drawable.ic_star_filled : R.drawable.ic_star_empty);
+                TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
+                if(starred) {
+                    star.startTransition(mShortAnimationDuration);
+                } else {
+                    star.reverseTransition(mShortAnimationDuration);
+                }
                 if(mOnStarredListener != null) {
                     mOnStarredListener.onStarred(mInfo, starred);
                 }
@@ -158,37 +284,84 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-    public PriceCheckAdapter(final RecyclerView recyclerView, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
-        mList = list;
-        mIsSavedList = isSavedList;
+    private static class LoadingViewHolder extends RecyclerView.ViewHolder {
+        LoadingViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
 
-        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                mTotalItemCount = linearLayoutManager.getItemCount();
-                mLastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
-                if (mHaveMoreItems && !mIsLoading && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
-                    if (mLoadMoreListener != null) {
-                        mLoadMoreListener.onLoadMore();
-                    }
+    private static class NoResultsViewHolder extends RecyclerView.ViewHolder {
+        private TextView mTextView;
 
-                    mIsLoading = true;
-                    for(int i = 0; i < getItemCount(); i++) {
-                        if(getItemViewType(i) == TYPE_FOOTER) {
-                            final int index = i;
-                            recyclerView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    notifyItemChanged(index);
-                                }
-                            });
-                        }
+        NoResultsViewHolder(View itemView) {
+            super(itemView);
+
+            mTextView = (TextView) itemView.findViewById(R.id.search_noresults_text);
+        }
+
+        void setQuery() {
+            mTextView.setText(R.string.savedlist_noresults);
+        }
+
+        void setQuery(String query, boolean isBarcode, boolean isCategory, boolean hasCategory) {
+            if(isCategory) {
+                mTextView.setText(mTextView.getContext().getString((hasCategory) ? R.string.search_noresults_category : R.string.search_category));
+                return;
+            }
+
+            mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_noresults_barcode : R.string.search_noresults, query));
+        }
+    }
+
+    private static class ErrorViewHolder extends RecyclerView.ViewHolder {
+        private TextView mTextView;
+
+        ErrorViewHolder(View itemView, final OnRetryListener listener) {
+            super(itemView);
+
+            mTextView = (TextView) itemView.findViewById(R.id.search_error_text);
+            itemView.findViewById(R.id.search_error_retry).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(listener != null) {
+                        listener.onRetry();
                     }
                 }
+            });
+        }
+
+        void setQuery() {
+            mTextView.setText(R.string.savedlist_error);
+        }
+
+        void setQuery(String query, boolean isBarcode, boolean isCategory, boolean hasCategory) {
+            if(isCategory) {
+                mTextView.setText(mTextView.getContext().getString((hasCategory) ? R.string.search_error_category : R.string.search_category));
+                return;
             }
-        });
+
+            mTextView.setText(mTextView.getContext().getString((isBarcode) ? R.string.search_error_barcode : R.string.search_error, query));
+        }
+    }
+
+    private static class AdViewHolder extends RecyclerView.ViewHolder {
+        AdViewHolder(View itemView) {
+            super(itemView);
+
+            NativeExpressAdView ad = (NativeExpressAdView) itemView.findViewById(R.id.search_result_ad);
+
+            AdRequest adRequest = new AdRequest.Builder()
+                    .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
+                    .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
+                    .build();
+            ad.loadAd(adRequest);
+        }
+    }
+
+    public PriceCheckAdapter(Context context, PriceCheckProvider.PriceCheckItems list, boolean isSavedList) {
+        mShortAnimationDuration = context.getResources().getInteger(android.R.integer.config_shortAnimTime);
+        mList = list;
+        mIsSavedList = isSavedList;
     }
 
     @Override
@@ -208,6 +381,26 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     .inflate((mIsSavedList) ? R.layout.saved_list_row_footer : R.layout.search_result_row_footer, parent, false);
 
             return new FooterViewHolder(itemView, mIsSavedList);
+        } else if(viewType == TYPE_LOADING) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_loading, parent, false);
+
+            return new LoadingViewHolder(itemView);
+        } else if(viewType == TYPE_NORESULTS) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_noresults, parent, false);
+
+            return new NoResultsViewHolder(itemView);
+        } else if(viewType == TYPE_ERROR) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_row_error, parent, false);
+
+            return new ErrorViewHolder(itemView, mOnRetryListener);
+        } else if(viewType == TYPE_AD) {
+            View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_ad, parent, false);
+
+            return new AdViewHolder(itemView);
         }
 
         throw new RuntimeException();
@@ -218,25 +411,89 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         if(holder instanceof PriceCheckViewHolder && position >= 1 && position < mList.size() + 1) {
             PriceCheckProvider.PriceCheckItem info = mList.get(position - 1);
             ((PriceCheckViewHolder) holder).setInfo(info);
+        } else if(holder instanceof HeaderViewHolder) {
+            ((HeaderViewHolder) holder).setCategories(mCategories);
+            if(mTempFilter != null) {
+                ((HeaderViewHolder) holder).setFilter(mTempFilter);
+                mTempFilter = null;
+            }
+            if(mTempSort != null) {
+                ((HeaderViewHolder) holder).setSort(mTempSort);
+                mTempSort = null;
+            }
         } else if(holder instanceof FooterViewHolder) {
-            ((FooterViewHolder) holder).setLoading(mIsLoading);
+            ((FooterViewHolder) holder).setLoading(mIsLoadingMore);
+        } else if(holder instanceof NoResultsViewHolder) {
+            if(mIsSavedList) {
+                ((NoResultsViewHolder) holder).setQuery();
+            } else {
+                ((NoResultsViewHolder) holder).setQuery(mQuery, mIsBarcode, mIsCategory, mHasCategory);
+            }
+        } else if(holder instanceof ErrorViewHolder) {
+            if(mIsSavedList) {
+                ((ErrorViewHolder) holder).setQuery();
+            } else {
+                ((ErrorViewHolder) holder).setQuery(mQuery, mIsBarcode, mIsCategory, mHasCategory);
+            }
         }
     }
 
     @Override
     public int getItemCount() {
+        if(mList.size() == 0 && (mIsLoading || mNoResults || mError)) {
+            return 3;
+        }
+
         return mList.size() + 2;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0) {
+        if(mIsLoading && position == 1) {
+            return TYPE_LOADING;
+        } else if(mNoResults && position == 1) {
+            return TYPE_NORESULTS;
+        } else if(mError && position == 1) {
+            return TYPE_ERROR;
+        } else if (position == 0) {
             return TYPE_HEADER;
         } else if(position == getItemCount() - 1) {
             return TYPE_FOOTER;
+        } else if(position > 0 && position < mList.size() && mList.get(position - 1) instanceof PriceCheckProvider.AdItem) {
+            return TYPE_AD;
         }
 
         return TYPE_ITEM;
+    }
+
+    public void initView(final RecyclerView recyclerView) {
+        final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                mTotalItemCount = linearLayoutManager.getItemCount();
+                mLastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                if (mList.size() > 0 && mHaveMoreItems && !mIsLoadingMore && mTotalItemCount <= (mLastVisibleItem + mVisibleThreshold)) {
+                    if (mLoadMoreListener != null) {
+                        mLoadMoreListener.onLoadMore();
+                    }
+
+                    mIsLoadingMore = true;
+                    for(int i = 0; i < getItemCount(); i++) {
+                        if(getItemViewType(i) == TYPE_FOOTER) {
+                            final int index = i;
+                            recyclerView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    notifyItemChanged(index);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public void notifyItemChanged(PriceCheckProvider.PriceCheckItem item) {
@@ -247,18 +504,72 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         super.notifyItemRemoved(mList.indexOf(item) + 1);
     }
 
+    public void setQuery(String query, boolean isBarcode, boolean isCategory) {
+        mQuery = query;
+        mIsBarcode = isBarcode;
+        mIsCategory = isCategory;
+    }
+
+    public void setLoading(boolean l) {
+        mIsLoading = l;
+    }
+
+    public void setNoResults(boolean b)  {
+        mNoResults = b;
+    }
+
+    public void setError(boolean b) {
+        mError = b;
+    }
+
     public void setHaveMoreItems(boolean b) {
         mHaveMoreItems = b;
     }
 
-    public void setLoaded() {
-        mIsLoading = false;
+    public void setLoadedMore() {
+        mIsLoadingMore = false;
 
         for(int i = 0; i < getItemCount(); i++) {
             if(getItemViewType(i) == TYPE_FOOTER) {
                 notifyItemChanged(i);
+                break;
             }
         }
+    }
+
+    public void setCategories(PriceCheckCategories categories) {
+        mCategories = categories;
+
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setFilter(String filter) {
+        mTempFilter = filter;
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setSort(String sort) {
+        mTempSort = sort;
+        for(int i = 0; i < getItemCount(); i++) {
+            if(getItemViewType(i) == TYPE_HEADER) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setHasCategory(boolean b) {
+        mHasCategory = b;
     }
 
     public void setOnLoadMoreListener(OnLoadMoreListener listener) {
@@ -269,6 +580,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
     public void setOnSortListener(OnSortListener listener) {
         mOnSortListener = listener;
+    }
+    public void setOnFilterListener(OnFilterListener listener) {
+        mOnFilterListener = listener;
+    }
+    public void setOnRetryListener(OnRetryListener listener) {
+        mOnRetryListener = listener;
     }
 
     public interface OnLoadMoreListener {
@@ -283,4 +600,11 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         void onSort(String type);
     }
 
+    public interface OnFilterListener {
+        void onFilter(String filter);
+    }
+
+    public interface OnRetryListener {
+        void onRetry();
+    }
 }

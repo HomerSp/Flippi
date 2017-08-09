@@ -25,6 +25,7 @@ package com.google.android.vending.licensing;
  * should use device-specific information as a key in the obfuscation algorithm to prevent
  * obfuscated preferences from being shared among devices.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public interface Obfuscator {
 
     /**
@@ -39,7 +40,7 @@ public interface Obfuscator {
     /**
      * Undo the transformation applied to data by the obfuscate() method.
      *
-     * @param original The data that is to be obfuscated.
+     * @param obfuscated The data that is to be obfuscated.
      * @param key The key for the data that is to be obfuscated.
      * @return A transformed version of the original data.
      * @throws ValidationException Optionally thrown if a data integrity check fails.

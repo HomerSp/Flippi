@@ -4,9 +4,8 @@ import android.content.Context;
 import android.support.design.widget.CoordinatorLayout;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
-import com.matnar.app.android.flippi.view.behavoir.FooterBarBehavior;
+import com.matnar.app.android.flippi.view.behavior.FooterBarBehavior;
 
 @CoordinatorLayout.DefaultBehavior(FooterBarBehavior.class)
 public class FooterBarLayout extends FrameLayout {

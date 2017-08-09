@@ -15,9 +15,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 
 public class CeXPriceCheckProvider extends PriceCheckProvider {
     private static final String TAG = "Flippi." + CeXPriceCheckProvider.class.getSimpleName();
@@ -31,14 +29,24 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
     }
 
     @Override
-    protected PriceCheckItems lookup(String name, int page, PriceCheckDatabase database) {
+    protected PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, String sort) {
         SQLiteDatabase db = database.getWritableDatabase();
 
         try {
-            Connection connection = Jsoup.connect(getSearchURL()).data("stext", name);
+            Connection connection = Jsoup.connect(getSearchURL());
+            if(name != null) {
+                connection.data("stext", name);
+            }
             if(page > 0) {
                 connection.data("page", Integer.toString(page));
             }
+            if(filter != null) {
+                connection.data("refinecat", filter);
+            }
+            if(sort != null) {
+                connection.data("sortOn", sort);
+            }
+
             Document doc = connection.get();
 
             Elements searchRecords = doc.select("div.searchRcrd");
@@ -126,13 +134,18 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         String sku = sanitizer.getValue("sku");
 
         Elements prices = row.select("div.desc > div.prodPrice div.priceTxt");
-        if(prices.size() != 3) {
-            return null;
-        }
 
-        String sellPrice = getRegionalPrice(prices.get(0));
-        String buyPrice = getRegionalPrice(prices.get(1));
-        String buyVoucherPrice = getRegionalPrice(prices.get(2));
+        double sellPrice = 0.0f;
+        double buyPrice = 0.0f;
+        double buyVoucherPrice = 0.0f;
+
+        try {
+            sellPrice = getRegionalPrice(prices.get(0));
+            buyPrice = getRegionalPrice(prices.get(1));
+            buyVoucherPrice = getRegionalPrice(prices.get(2));
+        } catch(IndexOutOfBoundsException e) {
+            // Empty
+        }
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
@@ -148,26 +161,22 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         sanitizer.parseUrl(product.select("div.productDetails div.btnSection > a").first().attr("abs:href"));
         String sku = sanitizer.getValue("id");
 
-        String sellPrice = getRegionalPrice(product.select("#Asellprice").first());
-        String buyPrice = getRegionalPrice(product.select("#Acashprice").first());
-        String buyVoucherPrice = getRegionalPrice(product.select("#Aexchprice").first());
-
-        if(sellPrice.length() == 0 || buyPrice.length() == 0 || buyVoucherPrice.length() == 0) {
-            return null;
-        }
+        double sellPrice = getRegionalPrice(product.select("#Asellprice").first());
+        double buyPrice = getRegionalPrice(product.select("#Acashprice").first());
+        double buyVoucherPrice = getRegionalPrice(product.select("#Aexchprice").first());
 
         return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
 
-    private String getRegionalPrice(Element row) {
+    private double getRegionalPrice(Element row) {
         if(row == null) {
-            return "";
+            return 0.0f;
         }
 
         int index = -1;
         String rowText = row.text();
         if(rowText.length() == 0) {
-            return "";
+            return 0.0f;
         }
 
         switch(mRegion) {
@@ -181,9 +190,9 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         }
 
         if(index < 0 || index >= rowText.length()) {
-            return "";
+            return 0.0f;
         }
 
-        return rowText.substring(index + 1);
+        return Double.parseDouble(rowText.substring(index + 1));
     }
 }

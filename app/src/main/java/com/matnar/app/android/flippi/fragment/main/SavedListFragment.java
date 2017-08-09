@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.matnar.app.android.flippi.R;
@@ -20,11 +18,12 @@ import com.matnar.app.android.flippi.activity.MainActivity;
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
-import com.matnar.app.android.flippi.util.AnimationUtil;
 import com.matnar.app.android.flippi.view.adapter.PriceCheckAdapter;
 import com.matnar.app.android.flippi.view.decoration.PriceCheckDecoration;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SavedListFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + SavedListFragment.class.getSimpleName();
@@ -34,18 +33,116 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
     private int mShortAnimationDuration;
 
-    private View mContainerView;
-    private View mLoadingView;
-    private TextView mNoResultsView;
     private RecyclerView mResultsView;
     private PriceCheckAdapter mResultsAdapter;
 
     private PriceCheckProvider.PriceCheckItems mResults = new PriceCheckProvider.PriceCheckItems();
     private boolean mHaveResults = false;
+    private String mSort;
 
     private Snackbar mSnackbar = null;
 
     public SavedListFragment() {
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        if(savedInstanceState != null) {
+            mResults.addAll(savedInstanceState.getParcelable("results"));
+            mSort = savedInstanceState.getString("sort");
+            mHaveResults = savedInstanceState.getBoolean("have_results");
+        }
+
+        mResultsAdapter = new PriceCheckAdapter(getContext(), mResults, true);
+        mResultsAdapter.setOnStarredListener(new PriceCheckAdapter.OnStarredListener() {
+            @Override
+            public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
+                item.setSaved(starred);
+                mResultsAdapter.notifyItemChanged(item);
+
+                try {
+                    new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                } catch(IllegalStateException e) {
+                    Log.e(TAG, "Set favourite error", e);
+                }
+
+                if(starred) {
+                    if(mSnackbar != null) {
+                        mSnackbar.dismiss();
+                    }
+
+                    mSnackbar = Snackbar.make(getActivity().findViewById(R.id.mainCoordinatorLayout), getActivity().getString(R.string.search_row_starred_undo), Snackbar.LENGTH_LONG);
+                    mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            try {
+                                item.setSaved(false);
+                                mResultsAdapter.notifyItemChanged(item);
+                                new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                            } catch(IllegalStateException e) {
+                                Log.e(TAG, "Undo set favourite error", e);
+                            }
+                        }
+                    });
+
+                    mSnackbar.show();
+                } else {
+                    if(mSnackbar != null) {
+                        mSnackbar.dismiss();
+                    }
+
+                    mSnackbar = Snackbar.make(getActivity().findViewById(R.id.mainCoordinatorLayout), getActivity().getString(R.string.search_row_unstarred_undo), Snackbar.LENGTH_LONG);
+                    mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            try {
+                                item.setSaved(true);
+                                mResultsAdapter.notifyItemChanged(item);
+                                new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                            } catch(IllegalStateException e) {
+                                Log.e(TAG, "Undo remove favourite error", e);
+                            }
+                        }
+                    });
+
+                    Snackbar.Callback cb = new Snackbar.Callback() {
+                        @Override
+                        public void onDismissed(Snackbar transientBottomBar, @DismissEvent int event) {
+                            if(item.isSaved()) {
+                                return;
+                            }
+
+                            if(mResults.size() <= 1) {
+                                mResultsAdapter.setNoResults(true);
+                            }
+
+                            mResultsAdapter.notifyItemRemoved(item);
+                            mResults.remove(item);
+                        }
+                    };
+                    mSnackbar.addCallback(cb);
+                    mSnackbar.show();
+                }
+
+                updateTotals();
+            }
+        });
+        mResultsAdapter.setOnSortListener(new PriceCheckAdapter.OnSortListener() {
+            @Override
+            public void onSort(final String type) {
+                mSort = type;
+                mResults.sort(type);
+                mResultsAdapter.notifyDataSetChanged();
+            }
+        });
+
+        if(mSort != null) {
+            mResultsAdapter.setSort(mSort);
+        }
     }
 
     @Override
@@ -57,27 +154,16 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
             super.showClearFavorites(true);
             super.showSearchItem(false);
             super.setToolbarScroll(true);
+            super.setActionBarTitle(getString(R.string.saved_row_header_results));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);
             return null;
         }
 
-        mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
         mView = inflater.inflate(R.layout.fragment_main_saved_list, container, false);
-
-        AppCompatSpinner spinner = (AppCompatSpinner) mView.findViewById(R.id.saved_row_header_sort);
-
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(mView.getContext(),
-                R.array.favorites_sort, R.layout.saved_list_row_header_sort);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        mContainerView = mView.findViewById(R.id.search_container);
-        mLoadingView = mContainerView.findViewById(R.id.search_loading_progress);
-        mNoResultsView = (TextView)mContainerView.findViewById(R.id.search_noresults_text);
         mResultsView = (RecyclerView) mView.findViewById(R.id.search_results);
         mResultsView.setLayoutManager(layoutManager);
         mResultsView.setItemAnimator(new DefaultItemAnimator());
@@ -102,111 +188,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
             }
         });
 
-        if(savedInstanceState != null) {
-            mResults.addAll(savedInstanceState.getParcelable("results"));
-            mHaveResults = savedInstanceState.getBoolean("have_results");
-        }
-
-        mResultsAdapter = new PriceCheckAdapter(mResultsView, mResults, true);
-        mResultsAdapter.setOnStarredListener(new PriceCheckAdapter.OnStarredListener() {
-            @Override
-            public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
-                item.setSaved(starred);
-                mResultsAdapter.notifyItemChanged(item);
-
-                try {
-                    new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Set favourite error", e);
-                }
-
-                if(starred) {
-                    if(mSnackbar != null) {
-                        mSnackbar.dismiss();
-                    }
-
-                    mSnackbar = Snackbar.make(getActivity().findViewById(R.id.mainCoordinatorLayout), getActivity().getString(R.string.search_row_starred_undo), Snackbar.LENGTH_LONG);
-                    mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            try {
-                                item.setSaved(false);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo set favourite error", e);
-                            }
-                        }
-                    });
-
-                    mSnackbar.show();
-                } else {
-                    if(mSnackbar != null) {
-                        mSnackbar.dismiss();
-                    }
-
-                    mSnackbar = Snackbar.make(getActivity().findViewById(R.id.mainCoordinatorLayout), getActivity().getString(R.string.search_row_unstarred_undo), Snackbar.LENGTH_LONG);
-                    mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            try {
-                                item.setSaved(true);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo remove favourite error", e);
-                            }
-                        }
-                    });
-
-                    Snackbar.Callback cb = new Snackbar.Callback() {
-                        @Override
-                        public void onDismissed(Snackbar transientBottomBar, @DismissEvent int event) {
-                            if(item.isSaved()) {
-                                return;
-                            }
-
-                            mResultsAdapter.notifyItemRemoved(item);
-                            mResults.remove(item);
-                            if(mResults.size() == 0) {
-                                update();
-                            }
-                        }
-                    };
-                    mSnackbar.addCallback(cb);
-                    mSnackbar.show();
-                }
-
-                updateTotals();
-            }
-        });
-        mResultsAdapter.setOnSortListener(new PriceCheckAdapter.OnSortListener() {
-            @Override
-            public void onSort(final String type) {
-                if(mResultsView.getVisibility() == View.VISIBLE) {
-                    mResultsView.clearAnimation();
-                    mResultsView.animate()
-                            .alpha(0.0f)
-                            .setDuration(mShortAnimationDuration)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    mResults.sort(type);
-                                    mResultsAdapter.notifyDataSetChanged();
-                                    mResultsView.clearAnimation();
-                                    mResultsView.animate()
-                                            .alpha(1.0f)
-                                            .setDuration(mShortAnimationDuration)
-                                            .setListener(null);
-                                }
-                            });
-                } else {
-                    mResults.sort(type);
-                    mResultsAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-
+        mResultsAdapter.initView(mResultsView);
         mResultsView.setAdapter(mResultsAdapter);
 
         PriceCheckDecoration dividerItemDecoration = new PriceCheckDecoration(getContext(),
@@ -227,6 +209,9 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
         super.onSaveInstanceState(outState);
 
         outState.putParcelable("results", mResults);
+        if(mSort != null) {
+            outState.putString("sort", mSort);
+        }
         outState.putBoolean("have_results", mHaveResults);
     }
 
@@ -242,7 +227,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
     public void clearFavorites() {
         try {
-            new PriceCheckDatabase.PriceCheckClearTask(super.getPriceCheckDatabase(), 0)
+            new PriceCheckDatabase.ClearTask(super.getPriceCheckDatabase(), 0)
                     .setResultListener(new PriceCheckDatabase.ClearListener() {
                         @Override
                         public void onResult(boolean result) {
@@ -275,7 +260,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                                             updateTotals();
 
-                                            new PriceCheckDatabase.PriceCheckUpdateTask(SavedListFragment.super.getPriceCheckDatabase(), mResults, 0).execute();
+                                            new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), mResults, 0).execute();
                                         } catch (IllegalStateException e) {
                                             Log.e(TAG, "Undo clear favourites error", e);
                                         }
@@ -286,19 +271,23 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                                 Snackbar.Callback cb = new Snackbar.Callback() {
                                     @Override
                                     public void onDismissed(Snackbar transientBottomBar, @DismissEvent int event) {
-                                        int i = 0;
-                                        do {
-                                            PriceCheckProvider.PriceCheckItem item = mResults.get(i);
+                                        List<PriceCheckProvider.PriceCheckItem> removals = new ArrayList<>();
+                                        for(PriceCheckProvider.PriceCheckItem item: mResults) {
                                             if(item.isSaved()) {
                                                 continue;
                                             }
 
+                                            removals.add(item);
+                                        }
+
+                                        if(removals.size() == mResults.size()) {
+                                            mResultsAdapter.setNoResults(true);
+                                        }
+
+                                        for(PriceCheckProvider.PriceCheckItem item: removals) {
                                             mResultsAdapter.notifyItemRemoved(item);
                                             mResults.remove(item);
-                                            i--;
-                                        } while(++i < mResults.size());
-
-                                        update();
+                                        }
                                     }
                                 };
                                 mSnackbar.addCallback(cb);
@@ -315,14 +304,14 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     public void doQuery() {
         mHaveResults = false;
         mResults.clear();
-
-        AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-        AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mLoadingView, mShortAnimationDuration);
-        AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
+        mResultsAdapter.setHaveMoreItems(false);
+        mResultsAdapter.setLoading(true);
+        mResultsAdapter.setNoResults(false);
+        mResultsAdapter.setError(false);
+        mResultsAdapter.notifyDataSetChanged();
 
         try {
-            new PriceCheckDatabase.PriceCheckGetAllTask(super.getPriceCheckDatabase(), 0)
+            new PriceCheckDatabase.GetAllTask(super.getPriceCheckDatabase(), 0)
                     .setResultListener(new PriceCheckDatabase.GetAllListener() {
                         @Override
                         public void onResult(PriceCheckProvider.PriceCheckItems results) {
@@ -332,6 +321,13 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                             if (results.size() > 0) {
                                 mResults.addAll(results);
+                            }
+
+                            mResultsAdapter.setLoading(false);
+                            if(mResults.hasError()) {
+                                mResultsAdapter.setError(true);
+                            } else {
+                                mResultsAdapter.setNoResults(mResults.size() == 0);
                             }
 
                             update();
@@ -344,26 +340,10 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     }
 
     private void update() {
-        if(mResults.size() > 0) {
-            StringBuilder s = new StringBuilder();
-
-            AnimationUtil.animateHide(mContainerView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mNoResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mResultsView, mShortAnimationDuration);
-        } else {
-            mNoResultsView.setText(R.string.savedlist_noresults);
-
-            AnimationUtil.animateHide(mLoadingView, mShortAnimationDuration);
-            AnimationUtil.animateHide(mResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mNoResultsView, mShortAnimationDuration);
-            AnimationUtil.animateShow(mContainerView, mShortAnimationDuration);
-        }
-
         updateTotals();
 
         mResultsAdapter.notifyDataSetChanged();
-        mResultsAdapter.setLoaded();
+        mResultsAdapter.setLoadedMore();
         mHaveResults = true;
     }
 
@@ -375,14 +355,14 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                 continue;
             }
 
-            totalPrice += Double.parseDouble(item.getBuyPrice());
-            totalVoucherPrice += Double.parseDouble(item.getBuyVoucherPrice());
+            totalPrice += item.getBuyPrice();
+            totalVoucherPrice += item.getBuyVoucherPrice();
         }
 
         TextView totalPriceView = (TextView) mFooter.findViewById(R.id.search_total_cashprice);
-        totalPriceView.setText(PriceCheckRegion.getPrice(getContext(), new DecimalFormat("0.00").format(totalPrice)));
+        totalPriceView.setText(PriceCheckRegion.getPrice(getContext(), totalPrice));
 
         TextView totalVoucherPriceView = (TextView) mFooter.findViewById(R.id.search_total_voucherprice);
-        totalVoucherPriceView.setText(PriceCheckRegion.getPrice(getContext(), new DecimalFormat("0.00").format(totalVoucherPrice)));
+        totalVoucherPriceView.setText(PriceCheckRegion.getPrice(getContext(), totalVoucherPrice));
     }
 }

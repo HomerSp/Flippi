@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-package com.matnar.app.android.flippi.util;
+package com.google.android.vending.licensing.util;
 
 import android.text.TextUtils;
 import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 
 import java.security.InvalidKeyException;
@@ -40,6 +37,7 @@ import java.security.spec.X509EncodedKeySpec;
  * make it harder for an attacker to replace the code with stubs that treat all
  * purchases as verified.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Security {
     private static final String TAG = "IABUtil/Security";
 
@@ -49,8 +47,7 @@ public class Security {
     /**
      * Verifies that the data was signed with the given signature, and returns
      * the verified purchase. The data is in JSON format and signed
-     * with a private key. The data also contains the {@link PurchaseState}
-     * and product ID of the purchase.
+     * with a private key.
      * @param base64PublicKey the base64-encoded public key to use for verifying.
      * @param signedData the signed JSON string (signed, not encrypted)
      * @param signature the signature for the data, signed with the private key

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.matnar.app.android.flippi.util;
+package com.google.android.vending.licensing.util;
 
 /**
  * Exception thrown when something went wrong with in-app billing.
@@ -21,20 +21,21 @@ package com.matnar.app.android.flippi.util;
  * To get the IAB result that caused this exception to be thrown,
  * call {@link #getResult()}.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class IabException extends Exception {
-    IabResult mResult;
+    private IabResult mResult;
 
-    public IabException(IabResult r) {
+    IabException(IabResult r) {
         this(r, null);
     }
-    public IabException(int response, String message) {
+    IabException(int response, String message) {
         this(new IabResult(response, message));
     }
-    public IabException(IabResult r, Exception cause) {
+    IabException(IabResult r, Exception cause) {
         super(r.getMessage(), cause);
         mResult = r;
     }
-    public IabException(int response, String message, Exception cause) {
+    IabException(int response, String message, Exception cause) {
         this(new IabResult(response, message), cause);
     }
 

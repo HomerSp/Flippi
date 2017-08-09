@@ -15,16 +15,23 @@
     <string name="yes">Yes</string>
     <string name="undo">Undo</string>
 
+    <string name="header_back">Back</string>
+    <string name="header_right">Enter</string>
+
     <string name="main_fragment_phone_image">Flippi logo</string>
-    <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below.</string>
+    <string name="main_fragment_fastestway">The fastest way to find the value of an item\nthrough CeX. Search above, or scan below.\nSwipe left to browse all categories.</string>
 
     <string name="search_hint">Search by title</string>
-    <string name="search_noresults">No results for %1$s.\nTry searching manually using the search bar above</string>
-    <string name="search_noresults_barcode">No results for barcode %1$s</string>
+    <string name="search_category">Browse items by selecting a category above.</string>
+
+    <string name="search_noresults">No results for %1$s.\nTry other search terms, or change the category above.</string>
+    <string name="search_noresults_barcode">No results for barcode %1$s. Try searching manually using the search bar above.</string>
+    <string name="search_noresults_category">No results in category. Try selecting another one above.</string>
     <string name="search_noresults_redo">Did you mean %1$s?</string>
 
     <string name="search_error">Error while searching for %1$s.</string>
     <string name="search_error_barcode">Error while searching for the barcode %1$s.</string>
+    <string name="search_error_category">Error while browsing category. Try selecting another one above.</string>
     <string name="search_try_again">Try again</string>
 
     <string name="search_row_starred_undo">Title has been added to favorites</string>
@@ -32,6 +39,8 @@
     <string name="search_row_unstarred_clear_undo">Favourites have been cleared</string>
 
     <string name="search_row_header_results">Results</string>
+    <string name="search_row_filter_no">Categories</string>
+    <string name="search_row_filter_clear">Reset</string>
 
     <string name="search_row_sellprice">Sell Price: %1$s</string>
     <string name="search_row_cashprice">Cash</string>
@@ -45,7 +54,10 @@
     <string name="saved_row_header_results">Favorites</string>
     <string name="saved_row_footer_total">Total</string>
 
+    <string name="saved_row_sort_no">Sort</string>
+
     <string name="savedlist_noresults">No favorites</string>
+    <string name="savedlist_error">Could not retrieve favorites</string>
     <string name="savedlist_clear">Clear favorites</string>
 
     <string name="settings_category_global">Global</string>

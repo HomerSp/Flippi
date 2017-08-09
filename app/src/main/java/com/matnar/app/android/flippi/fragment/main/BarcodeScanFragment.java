@@ -35,6 +35,17 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     private boolean mTorch = false;
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mRevealAnimationDuration = getResources().getInteger(R.integer.reveal_anim_duration);
+
+        if(savedInstanceState != null) {
+            mTorch = savedInstanceState.getBoolean("torch");
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         try {
@@ -43,24 +54,20 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
             super.showClearFavorites(false);
             super.showSearchItem(true);
             super.setToolbarScroll(false);
+            super.setActionBarTitle(getString(R.string.app_name));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);
             return null;
         }
 
-        mRevealAnimationDuration = getResources().getInteger(R.integer.reveal_anim_duration);
-
         View rootView = inflater.inflate(R.layout.fragment_main_barcode_scanner, container, false);
         mView = (DecoratedBarcodeView)rootView.findViewById(R.id.barcode_scanner_view);
         mView.setTorchListener(this);
 
-        if(savedInstanceState != null) {
-            mTorch = savedInstanceState.getBoolean("torch");
-            if(mTorch) {
-                mView.setTorchOn();
-            } else {
-                mView.setTorchOff();
-            }
+        if(mTorch) {
+            mView.setTorchOn();
+        } else {
+            mView.setTorchOff();
         }
 
         if(ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
@@ -83,8 +90,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
                     int cy = getArguments().getInt("cy");
                     int radius = (int) Math.hypot(right, bottom);
 
-                    Animator reveal = null;
-                    reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
+                    Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
                     reveal.setInterpolator(new DecelerateInterpolator(2f));
                     reveal.setDuration(mRevealAnimationDuration);
                     reveal.start();

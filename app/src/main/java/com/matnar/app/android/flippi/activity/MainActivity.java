@@ -2,20 +2,15 @@ package com.matnar.app.android.flippi.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -25,8 +20,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceFragmentCompat;
@@ -38,27 +33,22 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.SearchView;
 
-import com.android.vending.billing.IInAppBillingService;
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
-import com.google.android.vending.licensing.AESObfuscator;
-import com.google.android.vending.licensing.LicenseChecker;
 import com.google.android.vending.licensing.LicenseCheckerCallback;
-import com.google.android.vending.licensing.ServerManagedPolicy;
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.matnar.app.android.flippi.R;
-import com.matnar.app.android.flippi.fragment.main.BarcodeResultFragment;
+import com.matnar.app.android.flippi.db.CategoryDatabase;
+import com.matnar.app.android.flippi.db.PriceCheckDatabase;
+import com.matnar.app.android.flippi.fragment.main.SearchResultFragment;
 import com.matnar.app.android.flippi.fragment.main.BarcodeScanFragment;
 import com.matnar.app.android.flippi.fragment.main.MainFragment;
-import com.matnar.app.android.flippi.db.PriceCheckDatabase;
 import com.matnar.app.android.flippi.fragment.main.SavedListFragment;
 import com.matnar.app.android.flippi.fragment.main.SettingsFragment;
-import com.matnar.app.android.flippi.util.IabHelper;
-import com.matnar.app.android.flippi.util.IabResult;
-import com.matnar.app.android.flippi.util.Inventory;
+import com.google.android.vending.licensing.util.IabHelper;
+import com.google.android.vending.licensing.util.IabResult;
+import com.google.android.vending.licensing.util.Inventory;
 import com.matnar.app.android.flippi.view.widget.FooterBarLayout;
+import com.squareup.picasso.Picasso;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -70,20 +60,14 @@ public class MainActivity extends AppCompatActivity
 
     private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLGikFct+yG55/usMKwo/QM8/nRT7UVz753cWblRvJbb634POG8JwZ3UI8bXz2n72XHlk+/hnbXw//BUh8qk6ZMe1rkWR1Zavn64hFysilt4HtFRAOcqsIwg3Ic7eAJjIqssw3HlhIDAUAJnZ6j44Xy8WnoPuzColDkYBEaNP3Li9qcstLrj+bZ3owv6PyKJDQeB4V2qNXsTDRtKDGfcqtAOsoGzBx4pTGhBDco1HLW3fZ4Bl6N/5tLpvVQ7vxYdW3WusQ+Y8jlxcvyXrBdHwd4V5kgnLEhxVVOqmMEFvPtXDQP63eHo89hUAZFet6+cnxcTmoKJ4Qe9IAAB9iCbrwIDAQAB";
 
-    // Generate your own 20 random bytes, and put them here.
-    private static final byte[] SALT = new byte[] {
-            20, -32, 127, -50, -10, 108, 100, -128, 41, 32, -65, -12, 67, -125, 35, 9, 12, -76, -54,
-            98
-    };
-
     private IabHelper mBillingHelper;
     private Handler mLicenseHandler;
     private boolean mLicenseChecked = false;
     private boolean mAdFreeLicense = false;
     private List<OnLicenseCheckListener> mLicenseCheckListeners = new ArrayList<>();
 
-    private NavigationView mNavBar;
-    private AppBarLayout mAppBar;
+    private DrawerLayout mDrawer;
+    private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
     private FloatingActionButton mFAB;
     private FooterBarLayout mFooter;
@@ -99,14 +83,32 @@ public class MainActivity extends AppCompatActivity
     private boolean mSearchExpanded = false;
 
     private PriceCheckDatabase mPriceCheckDatabase;
-    private Handler mUIHandler;
+    private CategoryDatabase mCategoryDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAppBar = (AppBarLayout) findViewById(R.id.appbar_layout);
+        // Intialise Picasso downloader
+        boolean initialisePicasso = true;
+        try {
+            Picasso.setSingletonInstance(null);
+        } catch(IllegalStateException e) {
+            initialisePicasso = false;
+        }
+
+        if(initialisePicasso) {
+            try {
+                Picasso.setSingletonInstance(new Picasso.Builder(this)
+                        .downloader(new OkHttp3Downloader(this, Integer.MAX_VALUE))
+                        .build()
+                );
+            } catch(IllegalStateException e) {
+                Log.e(TAG, "Could not initialise Picasso", e);
+            }
+        }
+
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
@@ -153,6 +155,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         mPriceCheckDatabase = new PriceCheckDatabase(this);
+        mCategoryDatabase = new CategoryDatabase(this);
 
         mLicenseHandler = new Handler();
         mBillingHelper = new IabHelper(this, BASE64_PUBLIC_KEY);
@@ -182,11 +185,11 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawer.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -195,7 +198,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onBackStackChanged() {
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                if(currentFragment != null && !(currentFragment instanceof BarcodeResultFragment) && currentFragment.isVisible() && mFAB.getVisibility() != View.VISIBLE) {
+                if(currentFragment != null && !(currentFragment instanceof SearchResultFragment) && currentFragment.isVisible() && mFAB.getVisibility() != View.VISIBLE) {
                     mFAB.show();
                 }
             }
@@ -229,6 +232,8 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
 
+        mDrawer.removeDrawerListener(mDrawerToggle);
+
         mPriceCheckDatabase.close();
 
         if (mBillingHelper != null) {
@@ -254,6 +259,13 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if(currentFragment != null && currentFragment instanceof MainActivityFragment) {
+                if(((MainActivityFragment) currentFragment).onBackPressed()) {
+                    return;
+                }
+            }
+
             super.onBackPressed();
         }
     }
@@ -413,7 +425,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
+    private void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
         if(mLicenseChecked) {
             listener.onLicenseCheck(mAdFreeLicense);
             return;
@@ -422,14 +434,14 @@ public class MainActivity extends AppCompatActivity
         mLicenseCheckListeners.add(listener);
     }
 
-    protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
+    private void doSearch(String query, boolean isBarcode, int cx, int cy) {
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if(currentFragment != null && currentFragment instanceof BarcodeResultFragment && currentFragment.isVisible()) {
-            ((BarcodeResultFragment)currentFragment).doSearch(query, isBarcode);
+        if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
+            ((SearchResultFragment)currentFragment).doSearch(query, isBarcode);
         } else {
             getSupportFragmentManager().popBackStackImmediate("fragment_barcode_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
-            BarcodeResultFragment fragment = new BarcodeResultFragment();
+            SearchResultFragment fragment = new SearchResultFragment();
 
             Bundle args = new Bundle();
             args.putString("query", query);
@@ -450,15 +462,19 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected String getDeviceID() {
+    private String getDeviceID() {
         return PreferenceManager.getDefaultSharedPreferences(this).getString("uuid", UUID.randomUUID().toString());
     }
 
-    protected PriceCheckDatabase getPriceCheckDatabase() {
+    private PriceCheckDatabase getPriceCheckDatabase() {
         return mPriceCheckDatabase;
     }
 
-    protected void showFab(boolean show) {
+    private CategoryDatabase getCategoryDatabase() {
+        return mCategoryDatabase;
+    }
+
+    private void showFab(boolean show) {
         if(show && mFAB.getVisibility() != View.VISIBLE) {
             mFAB.show();
         } else if(!show && mFAB.getVisibility() == View.VISIBLE) {
@@ -466,13 +482,19 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void setToolbarScroll(boolean enable) {
+    private void setToolbarScroll(boolean enable) {
         AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-        params.setScrollFlags((enable) ? (AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS) : 0);
+        params.setScrollFlags(0);
         mToolbar.setLayoutParams(params);
+
+        if(enable) {
+            params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
+            params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS_COLLAPSED);
+            mToolbar.setLayoutParams(params);
+        }
     }
 
-    protected void setFabIcon(final int res) {
+    private void setFabIcon(final int res) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
@@ -497,21 +519,27 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void setSearchQuery(String q) {
+    private void setSearchQuery(String q) {
         if(mSearchView == null) {
             return;
         }
 
-        mSearchView.setQuery(q, false);
-        mSearchView.setIconified(false);
-        mSearchView.clearFocus();
+        if(q == null) {
+            mSearchView.setQuery("", false);
+            mSearchView.setIconified(true);
+            mSearchView.clearFocus();
+        } else {
+            mSearchView.setQuery(q, false);
+            mSearchView.setIconified(false);
+            mSearchView.clearFocus();
+        }
 
-        if(mSearchItem != null && q.length() == 0) {
+        if(mSearchItem != null && q == null) {
             mSearchItem.collapseActionView();
         }
     }
 
-    protected View setFooter(int resId) {
+    private View setFooter(int resId) {
         TypedArray arr = getTheme().obtainStyledAttributes(new int[] {R.attr.actionBarSize});
         final float translationY = -arr.getDimension(0, 0.0f);
 
@@ -521,16 +549,6 @@ public class MainActivity extends AppCompatActivity
             mFooter.setVisibility(View.INVISIBLE);
             mFooter.removeAllViews();
             mFooter.addView(view);
-            mFAB.clearAnimation();
-            mFAB.animate()
-                    .translationY(translationY)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mFAB.setTranslationY(translationY);
-                        }
-                    })
-                    .start();
             mFooter.setTranslationY(-translationY);
             mFooter.setVisibility(View.VISIBLE);
             mFooter.animate()
@@ -552,21 +570,20 @@ public class MainActivity extends AppCompatActivity
                     })
                     .start();
 
-            mFAB.clearAnimation();
-            mFAB.animate()
-                    .translationY(0.0f)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mFAB.setTranslationY(0.0f);
-                        }
-                    })
-                    .start();
             return null;
         }
     }
 
-    protected void showClearFavorites(boolean show) {
+    private void setActionBarTitle(String str) {
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar == null) {
+            throw(new IllegalStateException("Action bar is null!"));
+        }
+
+        actionBar.setTitle(str);
+    }
+
+    private void showClearFavorites(boolean show) {
         if(mClearFavoritesItem == null) {
             mClearFavoritesItemVisible = show;
             return;
@@ -575,7 +592,7 @@ public class MainActivity extends AppCompatActivity
         mClearFavoritesItem.setVisible(show);
     }
 
-    protected void showSearchItem(boolean show) {
+    private void showSearchItem(boolean show) {
         if(mSearchItem == null) {
             mSearchItemVisible = show;
             return;
@@ -584,6 +601,7 @@ public class MainActivity extends AppCompatActivity
         mSearchItem.setVisible(show);
     }
 
+    @SuppressWarnings("unused")
     private class AppLicenseCheckerCallback implements LicenseCheckerCallback {
         public void allow(int policyReason) {
             if (isFinishing()) {
@@ -631,6 +649,7 @@ public class MainActivity extends AppCompatActivity
         void onLicenseCheck(boolean result);
     }
 
+    @SuppressWarnings("unused")
     public abstract static class MainActivityFragment extends Fragment {
         public MainActivityFragment() {
         }
@@ -655,6 +674,18 @@ public class MainActivity extends AppCompatActivity
             return getMainActivity().getPriceCheckDatabase();
         }
 
+        protected CategoryDatabase getCategoryDatabase() {
+            return getMainActivity().getCategoryDatabase();
+        }
+
+        protected FragmentManager getSupportFragmentManager() {
+            return getMainActivity().getSupportFragmentManager();
+        }
+
+        protected boolean onBackPressed() {
+            return false;
+        }
+
         protected void setToolbarScroll(boolean enable) {
             getMainActivity().setToolbarScroll(enable);
         }
@@ -675,6 +706,10 @@ public class MainActivity extends AppCompatActivity
             return getMainActivity().setFooter(resId);
         }
 
+        protected void setActionBarTitle(String str) {
+            getMainActivity().setActionBarTitle(str);
+        }
+
         protected void showClearFavorites(boolean show) {
             getMainActivity().showClearFavorites(show);
         }
@@ -692,6 +727,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @SuppressWarnings("unused")
     public abstract static class MainActivityPreferenceFragment extends PreferenceFragmentCompat {
         public MainActivityPreferenceFragment() {
         }
@@ -714,6 +750,10 @@ public class MainActivity extends AppCompatActivity
 
         protected PriceCheckDatabase getPriceCheckDatabase() {
             return getMainActivity().getPriceCheckDatabase();
+        }
+
+        protected CategoryDatabase getCategoryDatabase() {
+            return getMainActivity().getCategoryDatabase();
         }
 
         protected void setToolbarScroll(boolean enable) {

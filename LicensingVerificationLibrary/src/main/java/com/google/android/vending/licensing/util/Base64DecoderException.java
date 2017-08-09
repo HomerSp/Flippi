@@ -19,12 +19,13 @@ package com.google.android.vending.licensing.util;
  *
  * @author nelson
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Base64DecoderException extends Exception {
   public Base64DecoderException() {
     super();
   }
 
-  public Base64DecoderException(String s) {
+  Base64DecoderException(String s) {
     super(s);
   }
 

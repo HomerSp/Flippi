@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
@@ -124,9 +123,9 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
                 String category = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CATEGORY));
                 String image = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_IMAGE));
                 String sku = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SKU));
-                String sellPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SELLPRICE));
-                String buyPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CASHPRICE));
-                String buyVoucherPrice = cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_VOUCHERPRICE));
+                double sellPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_SELLPRICE)));
+                double buyPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_CASHPRICE)));
+                double buyVoucherPrice = Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_VOUCHERPRICE)));
                 long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(PriceEntry.COLUMN_NAME_DATE));
                 ret.add(new PriceCheckProvider.PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, new Date(timestamp * 1000L)));
             } catch(IllegalArgumentException e) {
@@ -239,17 +238,17 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
         return db.delete(PriceEntry.TABLE_NAME, selection, selectionArgs) > 0;
     }
 
-    public static class PriceCheckClearTask extends AsyncTask<Void, Void, Boolean> {
+    public static class ClearTask extends AsyncTask<Void, Void, Boolean> {
         private PriceCheckDatabase mDB;
         private int mBundle;
         private ClearListener mListener;
 
-        public PriceCheckClearTask(PriceCheckDatabase db, int bundle) {
+        public ClearTask(PriceCheckDatabase db, int bundle) {
             mDB = db;
             mBundle = bundle;
         }
 
-        public PriceCheckClearTask setResultListener(ClearListener listener) {
+        public ClearTask setResultListener(ClearListener listener) {
             mListener = listener;
             return this;
         }
@@ -268,17 +267,17 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
         }
     }
 
-    public static class PriceCheckGetAllTask extends AsyncTask<Void, Void, PriceCheckProvider.PriceCheckItems> {
+    public static class GetAllTask extends AsyncTask<Void, Void, PriceCheckProvider.PriceCheckItems> {
         private PriceCheckDatabase mDB;
         private int mBundle;
         private GetAllListener mListener;
 
-        public PriceCheckGetAllTask(PriceCheckDatabase db, int bundle) {
+        public GetAllTask(PriceCheckDatabase db, int bundle) {
             mDB = db;
             mBundle = bundle;
         }
 
-        public PriceCheckGetAllTask setResultListener(GetAllListener listener) {
+        public GetAllTask setResultListener(GetAllListener listener) {
             mListener = listener;
             return this;
         }
@@ -300,21 +299,21 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
         }
     }
 
-    public static class PriceCheckUpdateTask extends AsyncTask<Void, Void, Boolean> {
+    public static class UpdateTask extends AsyncTask<Void, Void, Boolean> {
         private PriceCheckDatabase mDB;
         private List<PriceCheckProvider.PriceCheckItem> mItems = new ArrayList<>();
         private int mBundle;
         private boolean mRemove = false;
         private UpdateListener mListener;
 
-        public PriceCheckUpdateTask(PriceCheckDatabase db, PriceCheckProvider.PriceCheckItem item, int bundle) {
+        public UpdateTask(PriceCheckDatabase db, PriceCheckProvider.PriceCheckItem item, int bundle) {
             mDB = db;
             mItems.add(item);
             mBundle = bundle;
             mRemove = !item.isSaved();
         }
 
-        public PriceCheckUpdateTask(PriceCheckDatabase db, List<PriceCheckProvider.PriceCheckItem> items, int bundle) {
+        public UpdateTask(PriceCheckDatabase db, List<PriceCheckProvider.PriceCheckItem> items, int bundle) {
             mDB = db;
             mItems.addAll(items);
             mBundle = bundle;
@@ -323,7 +322,7 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
             }
         }
 
-        public PriceCheckUpdateTask setResultListener(UpdateListener listener) {
+        public UpdateTask setResultListener(UpdateListener listener) {
             mListener = listener;
             return this;
         }
@@ -394,9 +393,9 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
             values.put(COLUMN_NAME_IMAGE, item.getImage());
             values.put(COLUMN_NAME_SKU, item.getSKU());
             values.put(COLUMN_NAME_CATEGORY, item.getCategory());
-            values.put(COLUMN_NAME_SELLPRICE, item.getSellPrice());
-            values.put(COLUMN_NAME_CASHPRICE, item.getBuyPrice());
-            values.put(COLUMN_NAME_VOUCHERPRICE, item.getBuyVoucherPrice());
+            values.put(COLUMN_NAME_SELLPRICE, Double.toString(item.getSellPrice()));
+            values.put(COLUMN_NAME_CASHPRICE, Double.toString(item.getBuyPrice()));
+            values.put(COLUMN_NAME_VOUCHERPRICE, Double.toString(item.getBuyVoucherPrice()));
             values.put(COLUMN_NAME_DATE, System.currentTimeMillis() / 1000L);
 
             return values;

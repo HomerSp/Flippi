@@ -28,6 +28,7 @@
 
     <dimen name="search_row_title">15sp</dimen>
     <dimen name="search_row_subtext">11sp</dimen>
+    <dimen name="search_row_sellprice">13sp</dimen>
     <dimen name="search_row_cashprice">17sp</dimen>
     <dimen name="search_row_star_padding">2dp</dimen>
 

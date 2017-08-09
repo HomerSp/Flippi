@@ -22,7 +22,8 @@ import android.util.Log;
 /**
  * An wrapper for SharedPreferences that transparently performs data obfuscation.
  */
-public class PreferenceObfuscator {
+@SuppressWarnings({"WeakerAccess", "unused"})
+class PreferenceObfuscator {
 
     private static final String TAG = "PreferenceObfuscator";
 
@@ -36,18 +37,19 @@ public class PreferenceObfuscator {
      * @param sp A SharedPreferences instance provided by the system.
      * @param o The Obfuscator to use when reading or writing data.
      */
-    public PreferenceObfuscator(SharedPreferences sp, Obfuscator o) {
+    PreferenceObfuscator(SharedPreferences sp, Obfuscator o) {
         mPreferences = sp;
         mObfuscator = o;
         mEditor = null;
     }
 
-    public void putString(String key, String value) {
+    void putString(String key, String value) {
         if (mEditor == null) {
             mEditor = mPreferences.edit();
         }
         String obfuscatedValue = mObfuscator.obfuscate(value, key);
         mEditor.putString(key, obfuscatedValue);
+
     }
 
     public String getString(String key, String defValue) {
@@ -68,7 +70,7 @@ public class PreferenceObfuscator {
         return result;
     }
 
-    public void commit() {
+    void commit() {
         if (mEditor != null) {
             mEditor.commit();
             mEditor = null;

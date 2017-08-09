@@ -19,15 +19,15 @@ import java.util.Date;
 public abstract class PriceCheckProvider {
     private static final String TAG = "Flippi." + PriceCheckProvider.class.getSimpleName();
 
-    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, PriceCheckListener listener) {
-        getInformation(context, query, 0, database, listener);
+    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
+        getInformation(context, query, 0, database, filter, sort, listener);
     }
 
-    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, PriceCheckListener listener) {
-        new PriceCheckTask(context, page, database, listener).execute(query);
+    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
+        new PriceCheckTask(context, page, database, filter, sort, listener).execute(query);
     }
 
-    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database);
+    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, String sort);
 
     public interface PriceCheckListener {
         void onResult(PriceCheckItems result);
@@ -92,13 +92,28 @@ public abstract class PriceCheckProvider {
         public void sort(final String type) {
             Collections.sort(this, new Comparator<PriceCheckItem>() {
                 public int compare(PriceCheckItem a, PriceCheckItem b) {
-                    if(type.equals("date")) {
-                        return a.getDate().compareTo(b.getDate());
-                    } else if(type.equals("name")) {
-                        return a.getName().compareTo(b.getName());
+                    if(a == null || b == null) {
+                        return 0;
                     }
 
-                    return 0;
+                    if(type != null) {
+                        switch (type) {
+                            case "date_desc":
+                                return -a.getDate().compareTo(b.getDate());
+                            case "date_asc":
+                                return a.getDate().compareTo(b.getDate());
+                            case "sellprice_asc":
+                                return Double.valueOf(a.getSellPrice()).compareTo(b.getSellPrice());
+                            case "sellprice_desc":
+                                return Double.valueOf(b.getSellPrice()).compareTo(a.getSellPrice());
+                            case "name_az":
+                                return a.getName().compareTo(b.getName());
+                            case "name_za":
+                                return -a.getName().compareTo(b.getName());
+                        }
+                    }
+
+                    return -a.getDate().compareTo(b.getDate());
                 }
             });
         }
@@ -123,15 +138,15 @@ public abstract class PriceCheckProvider {
         };
     }
 
-    public static final class PriceCheckItem implements Parcelable {
+    public static class PriceCheckItem implements Parcelable {
         private String mName;
         private String mCategory;
         private String mImage;
         private String mSKU;
 
-        private String mSellPrice;
-        private String mBuyPrice;
-        private String mBuyVoucherPrice;
+        private double mSellPrice;
+        private double mBuyPrice;
+        private double mBuyVoucherPrice;
 
         private String mProvider;
         private PriceCheckRegion.Region mRegion;
@@ -139,11 +154,11 @@ public abstract class PriceCheckProvider {
 
         private boolean mSaved = true;
 
-        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region) {
+        public PriceCheckItem(String name, String category, String image, String sku, double sellPrice, double buyPrice, double buyVoucherPrice, String provider, PriceCheckRegion.Region region) {
             this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, (Date) null);
         }
 
-        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, Date date) {
+        public PriceCheckItem(String name, String category, String image, String sku, double sellPrice, double buyPrice, double buyVoucherPrice, String provider, PriceCheckRegion.Region region, Date date) {
             mName = name;
             mCategory = category;
             mSKU = sku;
@@ -156,11 +171,11 @@ public abstract class PriceCheckProvider {
             mDate = date;
         }
 
-        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db) {
+        public PriceCheckItem(String name, String category, String image, String sku, double sellPrice, double buyPrice, double buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db) {
             this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, db, null);
         }
 
-        public PriceCheckItem(String name, String category, String image, String sku, String sellPrice, String buyPrice, String buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db, Date date) {
+        public PriceCheckItem(String name, String category, String image, String sku, double sellPrice, double buyPrice, double buyVoucherPrice, String provider, PriceCheckRegion.Region region, SQLiteDatabase db, Date date) {
             this(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, provider, region, date);
 
             mSaved = PriceCheckDatabase.exists(db, this, 0);
@@ -190,15 +205,15 @@ public abstract class PriceCheckProvider {
             return mSKU;
         }
 
-        public String getSellPrice() {
+        public double getSellPrice() {
             return mSellPrice;
         }
 
-        public String getBuyPrice() {
+        public double getBuyPrice() {
             return mBuyPrice;
         }
 
-        public String getBuyVoucherPrice() {
+        public double getBuyVoucherPrice() {
             return mBuyVoucherPrice;
         }
 
@@ -225,9 +240,9 @@ public abstract class PriceCheckProvider {
             dest.writeString(mCategory);
             dest.writeString(mImage);
             dest.writeString(mSKU);
-            dest.writeString(mSellPrice);
-            dest.writeString(mBuyPrice);
-            dest.writeString(mBuyVoucherPrice);
+            dest.writeDouble(mSellPrice);
+            dest.writeDouble(mBuyPrice);
+            dest.writeDouble(mBuyVoucherPrice);
             dest.writeString(mProvider);
             dest.writeString(PriceCheckRegion.toString(mRegion));
         }
@@ -237,9 +252,9 @@ public abstract class PriceCheckProvider {
             mCategory = in.readString();
             mImage = in.readString();
             mSKU = in.readString();
-            mSellPrice = in.readString();
-            mBuyPrice = in.readString();
-            mBuyVoucherPrice = in.readString();
+            mSellPrice = in.readDouble();
+            mBuyPrice = in.readDouble();
+            mBuyVoucherPrice = in.readDouble();
             mProvider = in.readString();
             mRegion = PriceCheckRegion.fromString(in.readString());
         }
@@ -255,17 +270,27 @@ public abstract class PriceCheckProvider {
         };
     }
 
+    public static final class AdItem extends PriceCheckItem {
+        public AdItem() {
+            super("", "", "", "", 0.0f, 0.0f, 0.0f, "", PriceCheckRegion.Region.RegionUnknown);
+        }
+    }
+
     private static class PriceCheckTask extends AsyncTask<String, Void, PriceCheckItems> {
         private WeakReference<Context> mContext;
         private int mPage = 0;
         private PriceCheckDatabase mDatabase;
+        private String mFilter;
+        private String mSort;
         private PriceCheckListener mListener;
         private PriceCheckRegion.Region mRegion;
 
-        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, PriceCheckListener listener) {
+        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
             mContext = context;
             mPage = page;
             mDatabase = database;
+            mFilter = filter;
+            mSort = sort;
             mListener = listener;
             mRegion = PriceCheckRegion.getCurrent(context.get());
         }
@@ -278,7 +303,7 @@ public abstract class PriceCheckProvider {
             }
 
             PriceCheckProvider provider = new CeXPriceCheckProvider(mContext, mRegion);
-            return provider.lookup(query[0], mPage, mDatabase);
+            return provider.lookup(query[0], mPage, mDatabase, mFilter, mSort);
         }
 
         @Override

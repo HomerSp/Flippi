@@ -35,6 +35,7 @@ package com.google.android.vending.licensing;
  * changing phones. This will catch egregious violations of multiple people
  * sharing one license.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public interface DeviceLimiter {
 
     /**

@@ -24,7 +24,7 @@
             android:layout_weight="1" />
 
         <android.support.v7.widget.AppCompatSpinner
-            android:id="@+id/saved_row_header_sort"
+            android:id="@+id/row_header_sort"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center_vertical"/>

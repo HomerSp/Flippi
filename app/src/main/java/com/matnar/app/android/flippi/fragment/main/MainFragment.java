@@ -1,121 +1,143 @@
 package com.matnar.app.android.flippi.fragment.main;
 
-import android.content.Context;
-import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
 
-public class MainFragment extends MainActivity.MainActivityFragment {
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainFragment extends MainActivity.MainActivityFragment implements ViewPager.OnPageChangeListener {
     private static final String TAG = "Flippi." + MainFragment.class.getSimpleName();
 
-    private View mView;
-    private TextView mSearchView;
-    private AdView mAdView;
+    private ViewPager mView;
+    private PagerAdapter mAdapter;
 
-    public MainFragment() {
-        super();
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mAdapter = new MainFragmentAdapter(getChildFragmentManager());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            super.showSearchItem(false);
-            super.setToolbarScroll(false);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
 
-        mView = inflater.inflate(R.layout.fragment_main, container, false);
-
-        TextView appnameview = (TextView) mView.findViewById(R.id.main_fragment_appname);
-        Typeface typeface = Typeface.createFromAsset(mView.getContext().getAssets(), "font/Lobster_1_4.otf");
-        appnameview.setTypeface(typeface);
-
-        final ImageView searchButton = (ImageView) mView.findViewById(R.id.search_button);
-        mSearchView = (TextView) mView.findViewById(R.id.search_text);
-
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Rect rect = new Rect();
-                view.getGlobalVisibleRect(rect);
-                int cx  = rect.left + (view.getWidth() / 2);
-                int cy = rect.top + (view.getHeight() / 2);
-
-                mSearchView.clearFocus();
-                final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
-
-                try {
-                    MainFragment.super.setSearchQuery(mSearchView.getText().toString());
-                    MainFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Search button click error", e);
-                }
-            }
-        });
-
-        if(savedInstanceState != null) {
-            mSearchView.setText(savedInstanceState.getString("search_query"));
-        } else {
-            mSearchView.setText("");
-        }
-
-        mSearchView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if(actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    searchButton.performClick();
-                }
-
-                return true;
-            }
-        });
-
-        mAdView = (AdView) mView.findViewById(R.id.adView);
-
-        try {
-            addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
-                @Override
-                public void onLicenseCheck(boolean result) {
-                    if (!result) {
-                        AdRequest adRequest = new AdRequest.Builder()
-                                .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
-                                .build();
-                        mAdView.loadAd(adRequest);
-                    }
-                }
-            });
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Could not set listener", e);
-        }
+        mView = (ViewPager) inflater.inflate(R.layout.fragment_main, container, false);
+        mView.setAdapter(mAdapter);
 
         return mView;
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public boolean onBackPressed() {
+        if (mView.getCurrentItem() > 0) {
+            // Otherwise, select the previous step.
+            mView.setCurrentItem(mView.getCurrentItem() - 1);
+            return true;
+        }
 
-        outState.putString("search_query", mSearchView.getText().toString());
+        return false;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle bundle) {
+        super.onSaveInstanceState(bundle);
+
+        bundle.putParcelable("fragments", mAdapter.saveState());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if(mView != null) {
+            mView.removeOnPageChangeListener(this);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(mView != null) {
+            mView.addOnPageChangeListener(this);
+            onPageSelected(mView.getCurrentItem());
+        }
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        try {
+            switch (position) {
+                case 0:
+                    super.showSearchItem(false);
+                    super.setToolbarScroll(false);
+                    super.setActionBarTitle(getString(R.string.app_name));
+
+                    break;
+                case 1:
+                    super.showSearchItem(true);
+                    super.setToolbarScroll(true);
+                    super.setActionBarTitle(getString(R.string.search_row_filter_no));
+
+                    break;
+            }
+        } catch(IllegalStateException e) {
+            // Empty
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
+    private class MainFragmentAdapter extends FragmentStatePagerAdapter {
+        private List<Fragment> mFragments = new ArrayList<>();
+
+        MainFragmentAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch(position) {
+                case 0: {
+                    return new MainContentFragment();
+                }
+                case 1: {
+                    SearchResultFragment fragment = new SearchResultFragment();
+
+                    Bundle args = new Bundle();
+                    args.putBoolean("is_category", true);
+
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
     }
 }

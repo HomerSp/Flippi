@@ -16,9 +16,6 @@
 
 package com.google.android.vending.licensing;
 
-import com.google.android.vending.licensing.util.Base64;
-import com.google.android.vending.licensing.util.Base64DecoderException;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -28,8 +25,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.provider.Settings.Secure;
 import android.util.Log;
+
+import com.google.android.vending.licensing.util.Base64;
+import com.google.android.vending.licensing.util.Base64DecoderException;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +36,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -54,6 +54,7 @@ import java.util.Set;
  * Must also provide the Base64-encoded RSA public key associated with your
  * developer account. The public key is obtainable from the publisher site.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class LicenseChecker implements ServiceConnection {
     private static final String TAG = "LicenseChecker";
 
@@ -77,8 +78,8 @@ public class LicenseChecker implements ServiceConnection {
     private Handler mHandler;
     private final String mPackageName;
     private final String mVersionCode;
-    private final Set<LicenseValidator> mChecksInProgress = new HashSet<LicenseValidator>();
-    private final Queue<LicenseValidator> mPendingChecks = new LinkedList<LicenseValidator>();
+    private final Set<LicenseValidator> mChecksInProgress = new HashSet<>();
+    private final Queue<LicenseValidator> mPendingChecks = new LinkedList<>();
 
     /**
      * @param context a Context
@@ -131,7 +132,7 @@ public class LicenseChecker implements ServiceConnection {
      * <p>
      * source string: "com.android.vending.licensing.ILicensingService"
      * <p>
-     * @param callback
+     * @param callback Callback
      */
     public synchronized void checkAccess(LicenseCheckerCallback callback) {
         // If we have a valid recent LICENSED response, we can skip asking
@@ -230,7 +231,7 @@ public class LicenseChecker implements ServiceConnection {
                         finishCheck(mValidator);
                     }
                     if (DEBUG_LICENSE_ERROR) {
-                        boolean logResponse;
+                        boolean logResponse = false;
                         String stringError = null;
                         switch (responseCode) {
                             case ERROR_CONTACTING_SERVER:
@@ -245,17 +246,12 @@ public class LicenseChecker implements ServiceConnection {
                                 logResponse = true;
                                 stringError = "ERROR_NON_MATCHING_UID";
                                 break;
-                            default:
-                                logResponse = false;
                         }
 
                         if (logResponse) {
-                            String android_id = Secure.getString(mContext.getContentResolver(),
-                                    Secure.ANDROID_ID);
                             Date date = new Date();
                             Log.d(TAG, "Server Failure: " + stringError);
-                            Log.d(TAG, "Android ID: " + android_id);
-                            Log.d(TAG, "Time: " + date.toGMTString());
+                            Log.d(TAG, "Time: " + DateFormat.getDateTimeInstance().format(date));
                         }
                     }
 
@@ -336,7 +332,7 @@ public class LicenseChecker implements ServiceConnection {
     /**
      * Get version code for the application package name.
      * 
-     * @param context
+     * @param context Context
      * @param packageName application package name
      * @return the version code or empty string if package not found
      */

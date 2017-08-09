@@ -9,12 +9,41 @@
         <item>us</item>
     </string-array>
 
+    <string-array name="search_row_filter_disabled">
+        <item>@string/search_row_filter_no</item>
+    </string-array>
+
+    <string-array name="search_sort">
+        <item>Reset</item>
+        <item>Price Low-High</item>
+        <item>Price High-Low</item>
+        <item>Name A-Z</item>
+        <item>Name Z-A</item>
+    </string-array>
+    <string-array name="search_sort_key">
+        <item>reset</item>
+        <item>sellprice_asc</item>
+        <item>sellprice_desc</item>
+        <item>box_name_asc</item>
+        <item>box_name_desc</item>
+    </string-array>
+
     <string-array name="favorites_sort">
-        <item>Date added</item>
-        <item>Name</item>
+        <item>Reset</item>
+        <item>Last added</item>
+        <item>First added</item>
+        <item>Price Low-High</item>
+        <item>Price High-Low</item>
+        <item>Name A-Z</item>
+        <item>Name Z-A</item>
     </string-array>
     <string-array name="favorites_sort_key">
-        <item>date</item>
-        <item>name</item>
+        <item>reset</item>
+        <item>date_desc</item>
+        <item>date_asc</item>
+        <item>sellprice_asc</item>
+        <item>sellprice_desc</item>
+        <item>name_az</item>
+        <item>name_za</item>
     </string-array>
 </resources>

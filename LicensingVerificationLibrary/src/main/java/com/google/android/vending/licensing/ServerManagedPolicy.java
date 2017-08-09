@@ -16,18 +16,13 @@
 
 package com.google.android.vending.licensing;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Default policy. All policy decisions are based off of response data received
@@ -43,6 +38,7 @@ import android.util.Log;
  * Developers who need more fine grained control over their application's
  * licensing policy should implement a custom Policy.
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ServerManagedPolicy implements Policy {
 
     private static final String TAG = "ServerManagedPolicy";
@@ -195,7 +191,7 @@ public class ServerManagedPolicy implements Policy {
             // No response or not parsable, expire immediately
             Log.w(TAG, "License retry timestamp (GT) missing, grace period disabled");
             retryUntil = "0";
-            lRetryUntil = 0l;
+            lRetryUntil = 0L;
         }
 
         mRetryUntil = lRetryUntil;
@@ -221,7 +217,7 @@ public class ServerManagedPolicy implements Policy {
             // No response or not parsable, expire immediately
             Log.w(TAG, "Licence retry count (GR) missing, grace period disabled");
             maxRetries = "0";
-            lMaxRetries = 0l;
+            lMaxRetries = 0L;
         }
 
         mMaxRetries = lMaxRetries;
@@ -260,14 +256,13 @@ public class ServerManagedPolicy implements Policy {
     }
 
     private Map<String, String> decodeExtras(String extras) {
-        Map<String, String> results = new HashMap<String, String>();
+        Map<String, String> results = new HashMap<>();
         try {
-            URI rawExtras = new URI("?" + extras);
-            List<NameValuePair> extraList = URLEncodedUtils.parse(rawExtras, "UTF-8");
-            for (NameValuePair item : extraList) {
-                results.put(item.getName(), item.getValue());
+            Uri rawExtras = Uri.parse("http://google.com/?" + extras);
+            for(String key: rawExtras.getQueryParameterNames()) {
+                results.put(key, rawExtras.getQueryParameter(key));
             }
-        } catch (URISyntaxException e) {
+        } catch (NullPointerException e) {
           Log.w(TAG, "Invalid syntax error while decoding extras data from server.");
         }
         return results;
