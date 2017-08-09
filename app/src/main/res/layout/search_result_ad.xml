@@ -9,6 +9,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         ads:adUnitId="ca-app-pub-5638931008422581/8516238097"
-        ads:adSize="FULL_WIDTHx80" />
+        ads:adSize="FULL_WIDTHx100" />
 
 </LinearLayout>

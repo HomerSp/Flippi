@@ -54,6 +54,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
             super.showClearFavorites(false);
             super.showSearchItem(true);
             super.setToolbarScroll(false);
+            super.setActionBarTitle(getString(R.string.app_name));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);
             return null;

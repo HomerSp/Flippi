@@ -18,7 +18,7 @@ import com.matnar.app.android.flippi.activity.MainActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainFragment extends MainActivity.MainActivityFragment {
+public class MainFragment extends MainActivity.MainActivityFragment implements ViewPager.OnPageChangeListener {
     private static final String TAG = "Flippi." + MainFragment.class.getSimpleName();
 
     private ViewPager mView;
@@ -57,6 +57,57 @@ public class MainFragment extends MainActivity.MainActivityFragment {
         super.onSaveInstanceState(bundle);
 
         bundle.putParcelable("fragments", mAdapter.saveState());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if(mView != null) {
+            mView.removeOnPageChangeListener(this);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(mView != null) {
+            mView.addOnPageChangeListener(this);
+            onPageSelected(mView.getCurrentItem());
+        }
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        try {
+            switch (position) {
+                case 0:
+                    super.showSearchItem(false);
+                    super.setToolbarScroll(false);
+                    super.setActionBarTitle(getString(R.string.app_name));
+
+                    break;
+                case 1:
+                    super.showSearchItem(true);
+                    super.setToolbarScroll(true);
+                    super.setActionBarTitle(getString(R.string.search_row_filter_no));
+
+                    break;
+            }
+        } catch(IllegalStateException e) {
+            // Empty
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
     private class MainFragmentAdapter extends FragmentStatePagerAdapter {

@@ -181,8 +181,11 @@ public class BarcodeResultFragment extends MainActivity.MainActivityFragment {
             super.setFooter(0);
             super.setFabIcon(R.drawable.ic_fab_camera);
             super.showClearFavorites(false);
-            super.showSearchItem(true);
-            super.setToolbarScroll(true);
+            if(!mIsCategory) {
+                super.showSearchItem(true);
+                super.setToolbarScroll(true);
+                super.setActionBarTitle(getString(R.string.search_row_header_results));
+            }
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);
             return null;
