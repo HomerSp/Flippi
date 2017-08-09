@@ -32,6 +32,8 @@
         <item>Reset</item>
         <item>Last added</item>
         <item>First added</item>
+        <item>Price Low-High</item>
+        <item>Price High-Low</item>
         <item>Name A-Z</item>
         <item>Name Z-A</item>
     </string-array>
@@ -39,6 +41,8 @@
         <item>reset</item>
         <item>date_desc</item>
         <item>date_asc</item>
+        <item>sellprice_asc</item>
+        <item>sellprice_desc</item>
         <item>name_az</item>
         <item>name_za</item>
     </string-array>
