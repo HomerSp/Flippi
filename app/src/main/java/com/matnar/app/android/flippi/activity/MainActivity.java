@@ -483,15 +483,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setToolbarScroll(boolean enable) {
-        /*AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-        params.setScrollFlags(0);
-        mToolbar.setLayoutParams(params);
-
-        if(enable) {
-            params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-            params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS_COLLAPSED);
-            mToolbar.setLayoutParams(params);
-        }*/
+        // Empty
     }
 
     private void setFabIcon(final int res) {
@@ -499,7 +491,7 @@ public class MainActivity extends AppCompatActivity
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
                 public void run() {
-                    if((Integer) mFAB.getTag() != res && mFAB.getVisibility() == View.VISIBLE) {
+                    if((Integer) mFAB.getTag() != res || mFAB.getVisibility() != View.VISIBLE) {
                         mFAB.setTag(res);
                         mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
                             @Override
