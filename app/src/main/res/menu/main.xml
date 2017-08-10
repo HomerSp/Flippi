@@ -6,7 +6,7 @@
         android:title="@android:string/search_go"
         android:icon="@android:drawable/ic_menu_search"
         android:visible="false"
-        app:actionViewClass="android.widget.SearchView"
+        app:actionViewClass="com.matnar.app.android.flippi.view.widget.AutoCompleteSearchView"
         app:showAsAction="ifRoom" />
 
     <item

@@ -71,17 +71,18 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <android.support.v7.widget.AppCompatEditText
+                <com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView
                     android:id="@+id/search_text"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:maxLines="1"
-                    android:inputType="textAutoComplete"
                     android:hint="@string/search_hint"
                     android:textColorHint="@color/search_text_hint_color"
                     android:textColor="@android:color/background_light"
+                    android:inputType="text"
                     android:imeOptions="actionSearch"
+                    android:completionThreshold="1"
                     app:backgroundTint="@android:color/background_light"/>
 
                 <ImageView

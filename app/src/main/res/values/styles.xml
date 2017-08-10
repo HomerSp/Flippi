@@ -9,6 +9,8 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
 
         <item name="android:colorBackground">@color/search_results_background</item>
+        <item name="android:dropDownItemStyle">@style/AutoCompleteBackgroundLight</item>
+        <item name="android:dropDownListViewStyle">@style/AutoCompleteBackgroundLight</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -19,5 +21,9 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="AutoCompleteBackgroundLight">
+        <item name="android:background">@android:color/background_light</item>
+    </style>
 
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -18,12 +19,14 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
+import com.matnar.app.android.flippi.view.adapter.SavedSearchesAdapter;
 
 public class MainContentFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + MainContentFragment.class.getSimpleName();
 
     private View mView;
-    private TextView mSearchView;
+    private AppCompatAutoCompleteTextView mSearchView;
+
     private AdView mAdView;
 
     private String mQuery;
@@ -63,11 +66,17 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
         appnameview.setTypeface(typeface);
 
         final ImageView searchButton = (ImageView) mView.findViewById(R.id.search_button);
-        mSearchView = (TextView) mView.findViewById(R.id.search_text);
+        mSearchView = (AppCompatAutoCompleteTextView) mView.findViewById(R.id.search_text);
+
+        final SavedSearchesAdapter searchesAdapter = getSearchAdapter();
+        mSearchView.setAdapter(searchesAdapter);
 
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searchesAdapter.add(mSearchView.getText().toString());
+                searchesAdapter.notifyDataSetChanged();
+
                 Rect rect = new Rect();
                 view.getGlobalVisibleRect(rect);
                 int cx  = rect.left + (view.getWidth() / 2);

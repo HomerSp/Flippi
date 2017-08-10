@@ -31,7 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.SearchView;
+import android.support.v7.widget.SearchView;
 
 import com.google.android.vending.licensing.LicenseCheckerCallback;
 import com.jakewharton.picasso.OkHttp3Downloader;
@@ -46,6 +46,8 @@ import com.matnar.app.android.flippi.fragment.main.SettingsFragment;
 import com.google.android.vending.licensing.util.IabHelper;
 import com.google.android.vending.licensing.util.IabResult;
 import com.google.android.vending.licensing.util.Inventory;
+import com.matnar.app.android.flippi.view.adapter.SavedSearchesAdapter;
+import com.matnar.app.android.flippi.view.widget.AutoCompleteSearchView;
 import com.matnar.app.android.flippi.view.widget.FooterBarLayout;
 import com.squareup.picasso.Picasso;
 
@@ -78,9 +80,10 @@ public class MainActivity extends AppCompatActivity
     private boolean mSearchItemVisible = false;
     private boolean mClearFavoritesItemVisible = false;
 
-    private SearchView mSearchView = null;
+    private AutoCompleteSearchView mSearchView = null;
     private String mSearchQuery = null;
     private boolean mSearchExpanded = false;
+    private SavedSearchesAdapter mSearchAdapter;
 
     private PriceCheckDatabase mPriceCheckDatabase;
     private CategoryDatabase mCategoryDatabase;
@@ -191,6 +194,8 @@ public class MainActivity extends AppCompatActivity
         mDrawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
+        mSearchAdapter = new SavedSearchesAdapter(this);
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -254,6 +259,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        mSearchAdapter.save();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        mSearchAdapter.update();
+        mSearchAdapter.notifyDataSetChanged();
+    }
+
+    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -309,8 +329,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mSearchView = (SearchView) mSearchItem.getActionView();
+        mSearchView = (AutoCompleteSearchView) mSearchItem.getActionView();
         mSearchView.setQueryHint(getString(R.string.search_hint));
+        mSearchView.setAdapter(mSearchAdapter);
         if(mSearchQuery != null && (mSearchExpanded || mSearchQuery.length() > 0)) {
             mSearchView.setQuery(mSearchQuery, false);
             mSearchView.setIconified(false);
@@ -324,6 +345,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onQueryTextSubmit(String s) {
                 try {
+                    mSearchView.dismissDropDown();
+                    mSearchAdapter.add(s);
+                    mSearchAdapter.notifyDataSetChanged();
+
                     MainActivity.this.doSearch(s, false, 0, 0);
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Create options error", e);
@@ -472,6 +497,10 @@ public class MainActivity extends AppCompatActivity
 
     private CategoryDatabase getCategoryDatabase() {
         return mCategoryDatabase;
+    }
+
+    private SavedSearchesAdapter getSearchAdapter() {
+        return mSearchAdapter;
     }
 
     private void showFab(boolean show) {
@@ -676,6 +705,10 @@ public class MainActivity extends AppCompatActivity
 
         protected CategoryDatabase getCategoryDatabase() {
             return getMainActivity().getCategoryDatabase();
+        }
+
+        protected SavedSearchesAdapter getSearchAdapter() {
+            return getMainActivity().getSearchAdapter();
         }
 
         protected FragmentManager getSupportFragmentManager() {
