@@ -31,17 +31,21 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
 
     @Override
     public boolean enoughToFilter() {
-        return hasFocus();
+        return true;
     }
 
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
+        if(focused) {
+            showDropDown();
+        }
     }
 
     @Override
     public void onClick(View view) {
         if(view == this) {
+            view.requestFocus();
             showDropDown();
         }
     }
