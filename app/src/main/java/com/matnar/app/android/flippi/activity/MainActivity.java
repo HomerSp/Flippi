@@ -512,7 +512,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setToolbarScroll(boolean enable) {
-        AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
+        /*AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
         params.setScrollFlags(0);
         mToolbar.setLayoutParams(params);
 
@@ -520,7 +520,7 @@ public class MainActivity extends AppCompatActivity
             params = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
             params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS_COLLAPSED);
             mToolbar.setLayoutParams(params);
-        }
+        }*/
     }
 
     private void setFabIcon(final int res) {
@@ -807,6 +807,10 @@ public class MainActivity extends AppCompatActivity
 
         protected View setFooter(int resId) {
             return getMainActivity().setFooter(resId);
+        }
+
+        protected void setActionBarTitle(String str) {
+            getMainActivity().setActionBarTitle(str);
         }
 
         protected void showClearFavorites(boolean show) {
