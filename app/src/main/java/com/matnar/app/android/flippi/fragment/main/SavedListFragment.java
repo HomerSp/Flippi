@@ -177,9 +177,9 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                 try {
                     if(dy > 0) {
-                        SavedListFragment.super.showFab(false);
+                        SavedListFragment.super.setFabIcon(0);
                     } else if(dy < 0) {
-                        SavedListFragment.super.showFab(true);
+                        SavedListFragment.super.setFabIcon(R.drawable.ic_fab_camera);
                     }
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Show fab error", e);

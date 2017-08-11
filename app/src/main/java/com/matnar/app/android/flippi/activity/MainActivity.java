@@ -503,20 +503,17 @@ public class MainActivity extends AppCompatActivity
         return mSearchAdapter;
     }
 
-    private void showFab(boolean show) {
-        if(show) {
-            mFAB.show();
-        } else {
-            mFAB.hide();
-        }
-    }
-
     private void setFabIcon(final int res) {
+        if(res == 0) {
+            mFAB.hide();
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
                 public void run() {
-                    if((Integer) mFAB.getTag() != res && mFAB.getVisibility() != View.VISIBLE) {
+                    if((Integer) mFAB.getTag() != res && mFAB.getVisibility() == View.VISIBLE) {
                         mFAB.setTag(res);
                         mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
                             @Override
@@ -709,10 +706,6 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        protected void showFab(boolean show) {
-            getMainActivity().showFab(show);
-        }
-
         protected void setFabIcon(int res) {
             getMainActivity().setFabIcon(res);
         }
@@ -773,10 +766,6 @@ public class MainActivity extends AppCompatActivity
 
         protected CategoryDatabase getCategoryDatabase() {
             return getMainActivity().getCategoryDatabase();
-        }
-
-        protected void showFab(boolean show) {
-            getMainActivity().showFab(show);
         }
 
         protected void setFabIcon(int res) {

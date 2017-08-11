@@ -232,9 +232,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
                 try {
                     if (dy > 0) {
-                        SearchResultFragment.super.showFab(false);
+                        SearchResultFragment.super.setFabIcon(0);
                     } else if (dy < 0) {
-                        SearchResultFragment.super.showFab(true);
+                        SearchResultFragment.super.setFabIcon(R.drawable.ic_fab_camera);
                     }
                 } catch(IllegalStateException e) {
                     Log.e(TAG, "Show fab error", e);

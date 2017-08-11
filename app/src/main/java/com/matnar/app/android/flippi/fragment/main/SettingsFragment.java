@@ -26,7 +26,7 @@ public class SettingsFragment extends MainActivity.MainActivityPreferenceFragmen
 
         try {
             super.setFooter(0);
-            super.showFab(false);
+            super.setFabIcon(0);
             super.showClearFavorites(false);
             super.showSearchItem(false);
             super.setActionBarTitle(getContext().getString(R.string.app_name));
