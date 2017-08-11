@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -288,20 +289,13 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         outState.putString("query", mQuery);
         outState.putBoolean("is_barcode", mIsBarcode);
         outState.putBoolean("is_category", mIsCategory);
-        if(mQueryPending != null) {
-            outState.putString("query_string", mQueryPending);
-        }
-
+        outState.putString("query_string", mQueryPending);
         outState.putParcelable("results", mResults);
         outState.putBoolean("have_results", mHaveResults);
         outState.putInt("current_page", mCurrentPage);
         outState.putParcelable("categories", mCategories);
-        if(mFilter != null) {
-            outState.putString("filter", mFilter);
-        }
-        if(mSort != null) {
-            outState.putString("sort", mSort);
-        }
+        outState.putString("filter", mFilter);
+        outState.putString("sort", mSort);
     }
 
     @Override

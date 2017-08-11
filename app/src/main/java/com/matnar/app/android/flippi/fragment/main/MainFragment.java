@@ -53,8 +53,6 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
     @Override
     public void onSaveInstanceState(Bundle bundle) {
         super.onSaveInstanceState(bundle);
-
-        bundle.putParcelable("fragments", mAdapter.saveState());
     }
 
     @Override
