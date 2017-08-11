@@ -511,10 +511,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void setToolbarScroll(boolean enable) {
-        // Empty
-    }
-
     private void setFabIcon(final int res) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mFAB.animate().withEndAction(new Runnable() {
@@ -713,10 +709,6 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        protected void setToolbarScroll(boolean enable) {
-            getMainActivity().setToolbarScroll(enable);
-        }
-
         protected void showFab(boolean show) {
             getMainActivity().showFab(show);
         }
@@ -781,10 +773,6 @@ public class MainActivity extends AppCompatActivity
 
         protected CategoryDatabase getCategoryDatabase() {
             return getMainActivity().getCategoryDatabase();
-        }
-
-        protected void setToolbarScroll(boolean enable) {
-            getMainActivity().setToolbarScroll(enable);
         }
 
         protected void showFab(boolean show) {

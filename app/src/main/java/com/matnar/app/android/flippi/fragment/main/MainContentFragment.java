@@ -52,7 +52,6 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
             super.setFabIcon(R.drawable.ic_fab_camera);
             super.showClearFavorites(false);
             super.showSearchItem(false);
-            super.setToolbarScroll(true);
             super.setActionBarTitle(getString(R.string.app_name));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);

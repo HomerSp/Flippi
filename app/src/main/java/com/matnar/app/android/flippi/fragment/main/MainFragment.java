@@ -87,13 +87,11 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
             switch (position) {
                 case 0:
                     super.showSearchItem(false);
-                    super.setToolbarScroll(false);
                     super.setActionBarTitle(getString(R.string.app_name));
 
                     break;
                 case 1:
                     super.showSearchItem(true);
-                    super.setToolbarScroll(true);
                     super.setActionBarTitle(getString(R.string.search_row_filter_no));
 
                     break;

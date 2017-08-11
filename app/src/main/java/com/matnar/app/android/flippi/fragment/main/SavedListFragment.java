@@ -153,7 +153,6 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
             super.setFabIcon(R.drawable.ic_fab_camera);
             super.showClearFavorites(true);
             super.showSearchItem(false);
-            super.setToolbarScroll(true);
             super.setActionBarTitle(getString(R.string.saved_row_header_results));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create view error", e);

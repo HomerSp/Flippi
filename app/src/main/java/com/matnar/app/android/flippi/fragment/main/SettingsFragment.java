@@ -29,7 +29,6 @@ public class SettingsFragment extends MainActivity.MainActivityPreferenceFragmen
             super.showFab(false);
             super.showClearFavorites(false);
             super.showSearchItem(false);
-            super.setToolbarScroll(false);
             super.setActionBarTitle(getContext().getString(R.string.app_name));
         } catch(IllegalStateException e) {
             Log.e(TAG, "Create preferences error", e);

@@ -183,7 +183,6 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             super.showClearFavorites(false);
             if(!mIsCategory) {
                 super.showSearchItem(true);
-                super.setToolbarScroll(true);
                 super.setActionBarTitle(getString(R.string.search_row_header_results));
             }
         } catch(IllegalStateException e) {
