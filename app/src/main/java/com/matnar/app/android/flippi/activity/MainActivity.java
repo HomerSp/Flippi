@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -344,15 +343,12 @@ public class MainActivity extends AppCompatActivity
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                try {
-                    mSearchView.dismissDropDown();
-                    mSearchAdapter.add(s);
-                    mSearchAdapter.notifyDataSetChanged();
+                mSearchView.dismissDropDown();
+                mSearchAdapter.add(s);
+                mSearchAdapter.notifyDataSetChanged();
 
-                    MainActivity.this.doSearch(s, false, 0, 0);
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Create options error", e);
-                }
+                MainActivity.this.doSearch(s, false, 0, 0);
+
                 return true;
             }
 
@@ -593,7 +589,7 @@ public class MainActivity extends AppCompatActivity
     private void setActionBarTitle(String str) {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar == null) {
-            throw(new IllegalStateException("Action bar is null!"));
+            return;
         }
 
         actionBar.setTitle(str);
@@ -667,39 +663,54 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("unused")
     public abstract static class MainActivityFragment extends Fragment {
+        private MainActivity mActivity;
+
         public MainActivityFragment() {
         }
 
+        @Override
+        public void onAttach(Context context) {
+            super.onAttach(context);
+
+            if(getActivity() instanceof MainActivity) {
+                mActivity = (MainActivity) getActivity();
+            }
+        }
+
         protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
-            getMainActivity().addOnLicenseCheckListener(listener);
+            if(mActivity != null) {
+                mActivity.addOnLicenseCheckListener(listener);
+            }
         }
 
         protected void doSearch(String query, boolean isBarcode) {
-            getMainActivity().doSearch(query, isBarcode, 0, 0);
+            doSearch(query, isBarcode, 0, 0);
         }
 
         protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
-            getMainActivity().doSearch(query, isBarcode, cx, cy);
+            if(mActivity != null) {
+                mActivity.doSearch(query, isBarcode, cx, cy);
+            }
         }
 
         protected String getDeviceID() {
-            return getMainActivity().getDeviceID();
+            return (mActivity != null) ? mActivity.getDeviceID() : "";
         }
 
         protected PriceCheckDatabase getPriceCheckDatabase() {
-            return getMainActivity().getPriceCheckDatabase();
+            return (mActivity != null) ? mActivity.getPriceCheckDatabase() : null;
         }
 
         protected CategoryDatabase getCategoryDatabase() {
-            return getMainActivity().getCategoryDatabase();
+            return (mActivity != null) ? mActivity.getCategoryDatabase() : null;
         }
 
         protected SavedSearchesAdapter getSearchAdapter() {
-            return getMainActivity().getSearchAdapter();
+            return (mActivity != null) ? mActivity.getSearchAdapter() : null;
         }
 
         protected FragmentManager getSupportFragmentManager() {
-            return getMainActivity().getSupportFragmentManager();
+            return (mActivity != null) ? mActivity.getSupportFragmentManager() : null;
         }
 
         protected boolean onBackPressed() {
@@ -707,97 +718,128 @@ public class MainActivity extends AppCompatActivity
         }
 
         protected void setFabIcon(int res) {
-            getMainActivity().setFabIcon(res);
+            if(mActivity != null) {
+                mActivity.setFabIcon(res);
+            }
         }
 
         protected void setSearchQuery(String q) {
-            getMainActivity().setSearchQuery(q);
+            if(mActivity != null) {
+                mActivity.setSearchQuery(q);
+            }
         }
 
         protected View setFooter(int resId) {
-            return getMainActivity().setFooter(resId);
+            return (mActivity != null) ? mActivity.setFooter(resId) : null;
         }
 
         protected void setActionBarTitle(String str) {
-            getMainActivity().setActionBarTitle(str);
+            if(mActivity != null) {
+                mActivity.setActionBarTitle(str);
+            }
         }
 
         protected void showClearFavorites(boolean show) {
-            getMainActivity().showClearFavorites(show);
+            if(mActivity != null) {
+                mActivity.showClearFavorites(show);
+            }
         }
 
         protected void showSearchItem(boolean show) {
-           getMainActivity().showSearchItem(show);
-        }
-
-        private MainActivity getMainActivity() throws IllegalStateException {
-            if(getActivity() instanceof MainActivity) {
-                return (MainActivity) getActivity();
-            }
-
-            throw(new IllegalStateException("Activity is null!"));
+           if(mActivity != null) {
+               mActivity.showSearchItem(show);
+           }
         }
     }
 
     @SuppressWarnings("unused")
     public abstract static class MainActivityPreferenceFragment extends PreferenceFragmentCompat {
+        private MainActivity mActivity;
+
         public MainActivityPreferenceFragment() {
         }
 
+        @Override
+        public void onAttach(Context context) {
+            super.onAttach(context);
+
+            if(getActivity() instanceof MainActivity) {
+                mActivity = (MainActivity) getActivity();
+            }
+        }
+
         protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
-            getMainActivity().addOnLicenseCheckListener(listener);
+            if(mActivity != null) {
+                mActivity.addOnLicenseCheckListener(listener);
+            }
         }
 
         protected void doSearch(String query, boolean isBarcode) {
-            getMainActivity().doSearch(query, isBarcode, 0, 0);
+            doSearch(query, isBarcode, 0, 0);
         }
 
         protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
-            getMainActivity().doSearch(query, isBarcode, cx, cy);
+            if(mActivity != null) {
+                mActivity.doSearch(query, isBarcode, cx, cy);
+            }
         }
 
         protected String getDeviceID() {
-            return getMainActivity().getDeviceID();
+            return (mActivity != null) ? mActivity.getDeviceID() : "";
         }
 
         protected PriceCheckDatabase getPriceCheckDatabase() {
-            return getMainActivity().getPriceCheckDatabase();
+            return (mActivity != null) ? mActivity.getPriceCheckDatabase() : null;
         }
 
         protected CategoryDatabase getCategoryDatabase() {
-            return getMainActivity().getCategoryDatabase();
+            return (mActivity != null) ? mActivity.getCategoryDatabase() : null;
+        }
+
+        protected SavedSearchesAdapter getSearchAdapter() {
+            return (mActivity != null) ? mActivity.getSearchAdapter() : null;
+        }
+
+        protected FragmentManager getSupportFragmentManager() {
+            return (mActivity != null) ? mActivity.getSupportFragmentManager() : null;
+        }
+
+        protected boolean onBackPressed() {
+            return false;
         }
 
         protected void setFabIcon(int res) {
-            getMainActivity().setFabIcon(res);
+            if(mActivity != null) {
+                mActivity.setFabIcon(res);
+            }
         }
 
         protected void setSearchQuery(String q) {
-            getMainActivity().setSearchQuery(q);
+            if(mActivity != null) {
+                mActivity.setSearchQuery(q);
+            }
         }
 
         protected View setFooter(int resId) {
-            return getMainActivity().setFooter(resId);
+            return (mActivity != null) ? mActivity.setFooter(resId) : null;
         }
 
         protected void setActionBarTitle(String str) {
-            getMainActivity().setActionBarTitle(str);
+            if(mActivity != null) {
+                mActivity.setActionBarTitle(str);
+            }
         }
 
         protected void showClearFavorites(boolean show) {
-            getMainActivity().showClearFavorites(show);
+            if(mActivity != null) {
+                mActivity.showClearFavorites(show);
+            }
         }
 
         protected void showSearchItem(boolean show) {
-            getMainActivity().showSearchItem(show);
-        }
-
-        private MainActivity getMainActivity() throws IllegalStateException {
-            if(getActivity() instanceof MainActivity) {
-                return (MainActivity) getActivity();
+            if(mActivity != null) {
+                mActivity.showSearchItem(show);
             }
-
-            throw(new IllegalStateException("Activity is null!"));
         }
     }
 }

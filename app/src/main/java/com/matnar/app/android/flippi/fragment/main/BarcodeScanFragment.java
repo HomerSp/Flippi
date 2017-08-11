@@ -48,16 +48,12 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_torch_off);
-            super.showClearFavorites(false);
-            super.showSearchItem(true);
-            super.setActionBarTitle(getString(R.string.app_name));
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+        super.setFooter(0);
+        super.setFabIcon(R.drawable.ic_fab_torch_off);
+        super.showClearFavorites(false);
+        super.showSearchItem(true);
+        super.setActionBarTitle(getString(R.string.app_name));
+
 
         View rootView = inflater.inflate(R.layout.fragment_main_barcode_scanner, container, false);
         mView = (DecoratedBarcodeView)rootView.findViewById(R.id.barcode_scanner_view);
@@ -147,11 +143,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     public void barcodeResult(BarcodeResult result) {
         mView.pauseAndWait();
 
-        try {
-            super.doSearch(result.getText(), true);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Barcode result error", e);
-        }
+        super.doSearch(result.getText(), true);
     }
 
     @Override
@@ -170,19 +162,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
 
     @Override
     public void onTorchOn() {
-        try {
-            super.setFabIcon(R.drawable.ic_fab_torch_on);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Set fab icon error", e);
-        }
+        super.setFabIcon(R.drawable.ic_fab_torch_on);
     }
 
     @Override
     public void onTorchOff() {
-        try {
-            super.setFabIcon(R.drawable.ic_fab_torch_off);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Set fab icon error", e);
-        }
+        super.setFabIcon(R.drawable.ic_fab_torch_off);
     }
 }

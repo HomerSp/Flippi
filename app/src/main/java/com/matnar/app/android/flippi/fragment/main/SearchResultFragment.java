@@ -7,7 +7,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -93,13 +92,8 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setOnStarredListener(new PriceCheckAdapter.OnStarredListener() {
             @Override
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
-                try {
-                    item.setSaved(starred);
-                    new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Setting favourites error", e);
-                    return;
-                }
+                item.setSaved(starred);
+                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
 
                 if(starred) {
                     if(mSnackbar != null) {
@@ -111,13 +105,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            try {
-                                item.setSaved(false);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo favourite error", e);
-                            }
+                        item.setSaved(false);
+                        mResultsAdapter.notifyItemChanged(item);
+                        new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -132,13 +122,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            try {
-                                item.setSaved(true);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo unfavourite error", e);
-                            }
+                            item.setSaved(true);
+                            mResultsAdapter.notifyItemChanged(item);
+                            new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
                     mSnackbar.show();
@@ -177,17 +163,12 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            if(!mIsCategory) {
-                super.showSearchItem(true);
-                super.setActionBarTitle(getString(R.string.search_row_header_results));
-            }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
+        super.setFooter(0);
+        super.setFabIcon(R.drawable.ic_fab_camera);
+        super.showClearFavorites(false);
+        if(!mIsCategory) {
+            super.showSearchItem(true);
+            super.setActionBarTitle(getString(R.string.search_row_header_results));
         }
 
         mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
@@ -230,14 +211,10 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     return;
                 }
 
-                try {
-                    if (dy > 0) {
-                        SearchResultFragment.super.setFabIcon(0);
-                    } else if (dy < 0) {
-                        SearchResultFragment.super.setFabIcon(R.drawable.ic_fab_camera);
-                    }
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Show fab error", e);
+                if (dy > 0) {
+                    SearchResultFragment.super.setFabIcon(0);
+                } else if (dy < 0) {
+                    SearchResultFragment.super.setFabIcon(R.drawable.ic_fab_camera);
                 }
             }
         });
@@ -245,11 +222,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.initView(mResultsView);
 
         if(mIsBarcode) {
-            try {
-                super.setSearchQuery(null);
-            } catch(IllegalStateException e) {
-                Log.e(TAG, "Setting search error", e);
-            }
+            super.setSearchQuery(null);
         }
 
         if(savedInstanceState != null) {
@@ -277,36 +250,32 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                 layoutManager.getOrientation());
         mResultsView.addItemDecoration(dividerItemDecoration);
 
-        try {
-            if (!mHaveResults && mSort == null) {
-                if(mCategories.size() == 0) {
-                    new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
-                            .setResultListener(new CategoryDatabase.GetAllListener() {
-                                @Override
-                                public void onResult(PriceCheckCategories results) {
-                                    mCategories.addAll(results);
-                                    mResultsAdapter.setCategories(mCategories);
-                                    if(mQuery == null && mFilter == null) {
-                                        mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
-                                        mResultsAdapter.setHasCategory(false);
-                                        mResultsAdapter.setNoResults(true);
-                                        mResultsAdapter.setLoading(false);
-                                        return;
-                                    }
-
-                                    doSearch(mQuery, mIsBarcode);
+        if (!mHaveResults && mSort == null) {
+            if(mCategories.size() == 0) {
+                new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
+                        .setResultListener(new CategoryDatabase.GetAllListener() {
+                            @Override
+                            public void onResult(PriceCheckCategories results) {
+                                mCategories.addAll(results);
+                                mResultsAdapter.setCategories(mCategories);
+                                if(mQuery == null && mFilter == null) {
+                                    mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
+                                    mResultsAdapter.setHasCategory(false);
+                                    mResultsAdapter.setNoResults(true);
+                                    mResultsAdapter.setLoading(false);
+                                    return;
                                 }
-                            })
-                            .execute();
-                } else {
-                    doSearch(mQuery, mIsBarcode);
-                }
+
+                                doSearch(mQuery, mIsBarcode);
+                            }
+                        })
+                        .execute();
             } else {
-                mResultsAdapter.setLoading(false);
-                update();
+                doSearch(mQuery, mIsBarcode);
             }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
+        } else {
+            mResultsAdapter.setLoading(false);
+            update();
         }
 
         return mView;
@@ -420,14 +389,10 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             }
         };
 
-        try {
-            if (page > 0) {
-                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mSort, listener);
-            } else {
-                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mSort, listener);
-            }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Get price information error", e);
+        if (page > 0) {
+            PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mSort, listener);
+        } else {
+            PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mSort, listener);
         }
     }
 

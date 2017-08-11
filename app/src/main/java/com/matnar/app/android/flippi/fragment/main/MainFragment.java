@@ -83,21 +83,17 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
 
     @Override
     public void onPageSelected(int position) {
-        try {
-            switch (position) {
-                case 0:
-                    super.showSearchItem(false);
-                    super.setActionBarTitle(getString(R.string.app_name));
+        switch (position) {
+            case 0:
+                super.showSearchItem(false);
+                super.setActionBarTitle(getString(R.string.app_name));
 
-                    break;
-                case 1:
-                    super.showSearchItem(true);
-                    super.setActionBarTitle(getString(R.string.search_row_filter_no));
+                break;
+            case 1:
+                super.showSearchItem(true);
+                super.setActionBarTitle(getString(R.string.search_row_filter_no));
 
-                    break;
-            }
-        } catch(IllegalStateException e) {
-            // Empty
+                break;
         }
     }
 

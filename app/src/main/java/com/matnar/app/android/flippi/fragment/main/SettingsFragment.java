@@ -24,15 +24,11 @@ public class SettingsFragment extends MainActivity.MainActivityPreferenceFragmen
                              Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
-        try {
-            super.setFooter(0);
-            super.setFabIcon(0);
-            super.showClearFavorites(false);
-            super.showSearchItem(false);
-            super.setActionBarTitle(getContext().getString(R.string.app_name));
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create preferences error", e);
-        }
+        super.setFooter(0);
+        super.setFabIcon(0);
+        super.showClearFavorites(false);
+        super.showSearchItem(false);
+        super.setActionBarTitle(getContext().getString(R.string.app_name));
 
         return view;
     }

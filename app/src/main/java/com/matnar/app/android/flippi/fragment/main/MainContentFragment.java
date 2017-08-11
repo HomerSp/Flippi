@@ -47,16 +47,11 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            super.showSearchItem(false);
-            super.setActionBarTitle(getString(R.string.app_name));
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+        super.setFooter(0);
+        super.setFabIcon(R.drawable.ic_fab_camera);
+        super.showClearFavorites(false);
+        super.showSearchItem(false);
+        super.setActionBarTitle(getString(R.string.app_name));
 
         mView = inflater.inflate(R.layout.fragment_main_content, container, false);
 
@@ -85,12 +80,8 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
                 final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
 
-                try {
-                    MainContentFragment.super.setSearchQuery(mSearchView.getText().toString());
-                    MainContentFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Search button click error", e);
-                }
+                MainContentFragment.super.setSearchQuery(mSearchView.getText().toString());
+                MainContentFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
             }
         });
 
@@ -109,23 +100,19 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
 
         mAdView = (AdView) mView.findViewById(R.id.adView);
 
-        try {
-            addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
-                @Override
-                public void onLicenseCheck(boolean result) {
-                    if (!result) {
-                        AdRequest adRequest = new AdRequest.Builder()
-                                .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
-                                .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
-                                .addTestDevice("1B2DE92FE5DB3D15399D371932542B92")
-                                .build();
-                        mAdView.loadAd(adRequest);
-                    }
+        addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
+            @Override
+            public void onLicenseCheck(boolean result) {
+                if (!result) {
+                    AdRequest adRequest = new AdRequest.Builder()
+                            .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
+                            .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
+                            .addTestDevice("1B2DE92FE5DB3D15399D371932542B92")
+                            .build();
+                    mAdView.loadAd(adRequest);
                 }
-            });
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Could not set listener", e);
-        }
+            }
+        });
 
         return mView;
     }

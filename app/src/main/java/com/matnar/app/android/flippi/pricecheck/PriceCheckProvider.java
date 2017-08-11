@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
 import com.matnar.app.android.flippi.pricecheck.provider.CeXPriceCheckProvider;
@@ -298,7 +297,7 @@ public abstract class PriceCheckProvider {
 
         @Override
         protected PriceCheckItems doInBackground(String... query) {
-            if(query.length == 0) {
+            if(query.length == 0 || mDatabase == null) {
                 return null;
             }
 
