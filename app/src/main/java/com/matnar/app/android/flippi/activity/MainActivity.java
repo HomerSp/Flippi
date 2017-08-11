@@ -776,6 +776,10 @@ public class MainActivity extends AppCompatActivity
             return getMainActivity().setFooter(resId);
         }
 
+        protected void setActionBarTitle(String str) {
+            getMainActivity().setActionBarTitle(str);
+        }
+
         protected void showClearFavorites(boolean show) {
             getMainActivity().showClearFavorites(show);
         }
