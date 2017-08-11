@@ -475,9 +475,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showFab(boolean show) {
-        if(show && mFAB.getVisibility() != View.VISIBLE) {
+        if(show) {
             mFAB.show();
-        } else if(!show && mFAB.getVisibility() == View.VISIBLE) {
+        } else {
             mFAB.hide();
         }
     }
@@ -499,7 +499,7 @@ public class MainActivity extends AppCompatActivity
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
                 public void run() {
-                    if((Integer) mFAB.getTag() != res) {
+                    if((Integer) mFAB.getTag() != res || mFAB.getVisibility() != View.VISIBLE) {
                         mFAB.setTag(res);
                         mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
                             @Override
@@ -510,12 +510,14 @@ public class MainActivity extends AppCompatActivity
                         });
                     } else {
                         mFAB.setImageResource(res);
+                        mFAB.show();
                     }
                 }
             }).start();
         } else {
             mFAB.setImageResource(res);
             mFAB.setTag(res);
+            mFAB.show();
         }
     }
 
