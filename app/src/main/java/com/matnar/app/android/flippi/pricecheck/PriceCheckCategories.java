@@ -33,20 +33,20 @@ public class PriceCheckCategories extends ArrayList<PriceCheckCategories.PriceCh
     }
 
 
-    PriceCheckCategories(Parcel in) {
+    private PriceCheckCategories(Parcel in) {
         int size = in.readInt();
         for(int i = 0; i < size; i++) {
             add(new PriceCheckCategory(in));
         }
     }
 
-    public static final Parcelable.Creator<PriceCheckProvider.PriceCheckItems> CREATOR = new Parcelable.Creator<PriceCheckProvider.PriceCheckItems>() {
-        public PriceCheckProvider.PriceCheckItems createFromParcel(Parcel source) {
-            return new PriceCheckProvider.PriceCheckItems(source);
+    public static final Parcelable.Creator<PriceCheckCategories> CREATOR = new Parcelable.Creator<PriceCheckCategories>() {
+        public PriceCheckCategories createFromParcel(Parcel source) {
+            return new PriceCheckCategories(source);
         }
 
-        public PriceCheckProvider.PriceCheckItems[] newArray(int size) {
-            return new PriceCheckProvider.PriceCheckItems[size];
+        public PriceCheckCategories[] newArray(int size) {
+            return new PriceCheckCategories[size];
         }
     };
 

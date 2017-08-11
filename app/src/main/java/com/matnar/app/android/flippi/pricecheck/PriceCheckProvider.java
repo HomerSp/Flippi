@@ -73,6 +73,7 @@ public abstract class PriceCheckProvider {
             dest.writeInt(mPages);
             dest.writeInt(size());
             for(PriceCheckItem item: this) {
+                dest.writeInt((item instanceof AdItem) ? 1 : 0);
                 item.writeToParcel(dest, flags);
             }
         }
@@ -123,7 +124,11 @@ public abstract class PriceCheckProvider {
             mPages = in.readInt();
             int size = in.readInt();
             for(int i = 0; i < size; i++) {
-                add(new PriceCheckItem(in));
+                if(in.readInt() == 1) {
+                    add(new AdItem(in));
+                } else {
+                    add(new PriceCheckItem(in));
+                }
             }
         }
 
@@ -245,6 +250,12 @@ public abstract class PriceCheckProvider {
             dest.writeDouble(mBuyVoucherPrice);
             dest.writeString(mProvider);
             dest.writeString(PriceCheckRegion.toString(mRegion));
+            if(mDate == null) {
+                dest.writeLong(0);
+            } else {
+                dest.writeLong(mDate.getTime());
+            }
+            dest.writeInt((mSaved) ? 1 : 0);
         }
 
         PriceCheckItem(Parcel in) {
@@ -257,6 +268,12 @@ public abstract class PriceCheckProvider {
             mBuyVoucherPrice = in.readDouble();
             mProvider = in.readString();
             mRegion = PriceCheckRegion.fromString(in.readString());
+            long date = in.readLong();
+            mSaved = (in.readInt() == 1);
+
+            if(date != 0) {
+                mDate = new Date(date);
+            }
         }
 
         public static final Parcelable.Creator<PriceCheckItem> CREATOR = new Parcelable.Creator<PriceCheckItem>() {
@@ -273,6 +290,10 @@ public abstract class PriceCheckProvider {
     public static final class AdItem extends PriceCheckItem {
         public AdItem() {
             super("", "", "", "", 0.0f, 0.0f, 0.0f, "", PriceCheckRegion.Region.RegionUnknown);
+        }
+
+        AdItem(Parcel in) {
+            super(in);
         }
     }
 
