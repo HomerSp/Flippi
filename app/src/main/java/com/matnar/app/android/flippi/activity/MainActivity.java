@@ -520,7 +520,7 @@ public class MainActivity extends AppCompatActivity
             mFAB.animate().withEndAction(new Runnable() {
                 @Override
                 public void run() {
-                    if((Integer) mFAB.getTag() != res || mFAB.getVisibility() != View.VISIBLE) {
+                    if((Integer) mFAB.getTag() != res && mFAB.getVisibility() != View.VISIBLE) {
                         mFAB.setTag(res);
                         mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
                             @Override
