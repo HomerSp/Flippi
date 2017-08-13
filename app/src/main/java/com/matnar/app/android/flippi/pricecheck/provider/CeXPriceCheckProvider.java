@@ -2,6 +2,7 @@ package com.matnar.app.android.flippi.pricecheck.provider;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.util.Log;
 
@@ -35,16 +36,17 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         try {
             Connection connection = Jsoup.connect(getSearchURL());
             if(name != null) {
-                connection.data("stext", name);
+                connection.data("stext", encode(name));
             }
             if(page > 0) {
                 connection.data("page", Integer.toString(page));
             }
             if(filter != null) {
-                connection.data("refinecat", filter);
+                Log.d(TAG, "refinecat " + encode(filter));
+                connection.data("refinecat", encode(filter));
             }
             if(sort != null) {
-                connection.data("sortOn", sort);
+                connection.data("sortOn", encode(sort));
             }
 
             Document doc = connection.get();
@@ -105,6 +107,11 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
         }
 
         return new PriceCheckItems(1, true);
+    }
+
+    private String encode(String e) {
+        e = Uri.encode(e);
+        return e.replaceAll("%20", "+");
     }
 
     private String getName() {
