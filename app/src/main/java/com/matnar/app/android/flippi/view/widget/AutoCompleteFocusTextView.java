@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.WindowManager;
 
 public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView implements View.OnClickListener {
     private static final String TAG = "Flippi." + AutoCompleteFocusTextView.class.getSimpleName();
@@ -34,8 +35,12 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        if(focused) {
-            showDropDown();
+        try {
+            if (focused) {
+                showDropDown();
+            }
+        } catch(WindowManager.BadTokenException e) {
+            // Empty
         }
     }
 
