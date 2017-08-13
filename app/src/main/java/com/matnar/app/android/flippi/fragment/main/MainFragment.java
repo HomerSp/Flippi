@@ -85,6 +85,7 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
             case 0:
                 super.showSearchItem(false);
                 super.setActionBarTitle(getString(R.string.app_name));
+                super.resetActionBar();
 
                 break;
             case 1:

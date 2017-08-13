@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -67,6 +69,9 @@ public class MainActivity extends AppCompatActivity
     private boolean mAdFreeLicense = false;
     private List<OnLicenseCheckListener> mLicenseCheckListeners = new ArrayList<>();
 
+    private CoordinatorLayout mCoordinatorLayout;
+    private AppBarLayout mAppBarLayout;
+
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
@@ -110,6 +115,9 @@ public class MainActivity extends AppCompatActivity
                 Log.e(TAG, "Could not initialise Picasso", e);
             }
         }
+
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.mainCoordinatorLayout);
+        mAppBarLayout = (AppBarLayout) findViewById(R.id.appbar_layout);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
@@ -499,6 +507,16 @@ public class MainActivity extends AppCompatActivity
         return mSearchAdapter;
     }
 
+    private void resetActionBar() {
+        if(mAppBarLayout.getY() < 0) {
+            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mAppBarLayout.getLayoutParams();
+            AppBarLayout.Behavior behavior = (AppBarLayout.Behavior) params.getBehavior();
+            if (behavior != null) {
+                behavior.onNestedFling(mCoordinatorLayout, mAppBarLayout, null, 0, mAppBarLayout.getY(), true);
+            }
+        }
+    }
+
     private void setFabIcon(final int res) {
         if(res == 0) {
             mFAB.hide();
@@ -715,6 +733,12 @@ public class MainActivity extends AppCompatActivity
 
         protected boolean onBackPressed() {
             return false;
+        }
+
+        protected void resetActionBar() {
+            if(mActivity != null) {
+                mActivity.resetActionBar();
+            }
         }
 
         protected void setFabIcon(int res) {

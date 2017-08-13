@@ -5,7 +5,6 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,6 +51,7 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
         super.showClearFavorites(false);
         super.showSearchItem(false);
         super.setActionBarTitle(getString(R.string.app_name));
+        super.resetActionBar();
 
         mView = inflater.inflate(R.layout.fragment_main_content, container, false);
 
