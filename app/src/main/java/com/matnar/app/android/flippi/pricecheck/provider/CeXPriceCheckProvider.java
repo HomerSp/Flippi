@@ -30,7 +30,7 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
     }
 
     @Override
-    protected PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, String sort) {
+    protected PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, long filterCategory, String sort) {
         SQLiteDatabase db = database.getWritableDatabase();
 
         try {
@@ -42,8 +42,10 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
                 connection.data("page", Integer.toString(page));
             }
             if(filter != null) {
-                Log.d(TAG, "refinecat " + encode(filter));
                 connection.data("refinecat", encode(filter));
+                if(filterCategory != 0) {
+                    connection.data("CategoryID", Long.toString(filterCategory));
+                }
             }
             if(sort != null) {
                 connection.data("sortOn", encode(sort));

@@ -50,6 +50,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
     private int mCurrentPage = 0;
     private String mFilter;
+    private long mFilterCategory = 0;
     private String mSort;
     private boolean mIsCategory = false;
 
@@ -72,6 +73,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             mCurrentPage = savedInstanceState.getInt("current_page");
             mCategories.addAll(savedInstanceState.getParcelable("categories"));
             mFilter = savedInstanceState.getString("filter");
+            mFilterCategory = savedInstanceState.getLong("filter_category");
             mSort = savedInstanceState.getString("sort");
             mIsCategory = savedInstanceState.getBoolean("is_category");
         } else {
@@ -135,8 +137,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
         mResultsAdapter.setOnFilterListener(new PriceCheckAdapter.OnFilterListener() {
             @Override
-            public void onFilter(String filter) {
+            public void onFilter(String filter, long id) {
                 mFilter = filter;
+                mFilterCategory = id;
                 doSearch(mQuery, mIsBarcode);
             }
         });
@@ -295,6 +298,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         outState.putInt("current_page", mCurrentPage);
         outState.putParcelable("categories", mCategories);
         outState.putString("filter", mFilter);
+        outState.putLong("filter_category", mFilterCategory);
         outState.putString("sort", mSort);
     }
 
@@ -384,9 +388,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         };
 
         if (page > 0) {
-            PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         } else {
-            PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         }
     }
 

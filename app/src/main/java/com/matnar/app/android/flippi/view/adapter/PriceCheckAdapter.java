@@ -99,16 +99,16 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 mSpinner.setAdapter(mCategoriesAdapter);
                 mSpinner.setOnItemSelectedListener(new PriceCheckFilterSpinner.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(String name) {
+                    public void onItemSelected(String name, long id) {
                         if(mOnFilterListener != null) {
-                            mOnFilterListener.onFilter(name);
+                            mOnFilterListener.onFilter(name, id);
                         }
                     }
 
                     @Override
                     public void onNothingSelected() {
                         if(mOnFilterListener != null) {
-                            mOnFilterListener.onFilter(null);
+                            mOnFilterListener.onFilter(null, 0);
                         }
                     }
                 });
@@ -602,7 +602,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public interface OnFilterListener {
-        void onFilter(String filter);
+        void onFilter(String filter, long id);
     }
 
     public interface OnRetryListener {
