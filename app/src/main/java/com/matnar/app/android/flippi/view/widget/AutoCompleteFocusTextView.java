@@ -35,12 +35,8 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        try {
-            if (focused) {
-                showDropDown();
-            }
-        } catch(WindowManager.BadTokenException e) {
-            // Empty
+        if (focused && hasWindowFocus()) {
+            showDropDown();
         }
     }
 
