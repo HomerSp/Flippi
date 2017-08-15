@@ -581,6 +581,7 @@ public class MainActivity extends AppCompatActivity
             mFooter.addView(view);
             mFooter.setTranslationY(-translationY);
             mFooter.setVisibility(View.VISIBLE);
+            mFooter.animate().cancel();
             mFooter.animate()
                     .translationY(0.0f)
                     .setListener(null)

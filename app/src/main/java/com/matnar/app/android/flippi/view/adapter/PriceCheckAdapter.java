@@ -1,5 +1,7 @@
 package com.matnar.app.android.flippi.view.adapter;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -214,6 +216,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             super(itemView);
 
             mView = (FrameLayout) itemView;
+            mView.setTag(0);
             mIsSavedList = isSavedList;
 
             mTitleView = (TextView) itemView.findViewById(R.id.search_row_title);
@@ -234,12 +237,28 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 int colorFrom = ((ColorDrawable) mView.getForeground()).getColor();
                 int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);
 
+                if((Integer) mView.getTag() != 0) {
+                    mView.setTag(0);
+                }
+
                 ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
                 colorAnimation.setDuration(mShortAnimationDuration); // milliseconds
+                colorAnimation.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        mView.setTag(1);
+                    }
+                });
                 colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
                     @Override
                     public void onAnimationUpdate(ValueAnimator animator) {
+                        if((Integer) mView.getTag() != 1) {
+                            mView.setTag(0);
+                            animator.cancel();
+                            return;
+                        }
+
                         mView.setForeground(new ColorDrawable((Integer) animator.getAnimatedValue()));
                     }
 
