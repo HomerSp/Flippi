@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -87,6 +88,14 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
 
         mSearchView.setText(mQuery);
 
+        mSearchView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                return false;
+            }
+        });
         mSearchView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
