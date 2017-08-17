@@ -84,6 +84,7 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
         switch (position) {
             case 0:
                 super.showSearchItem(false);
+                super.showAppBarSearch(false);
                 super.setActionBarTitle(getString(R.string.app_name));
                 super.resetActionBar();
 

@@ -26,28 +26,37 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceFragmentCompat;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.support.v7.widget.SearchView;
+import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.android.vending.licensing.LicenseCheckerCallback;
+import com.google.android.vending.licensing.util.IabHelper;
+import com.google.android.vending.licensing.util.IabResult;
+import com.google.android.vending.licensing.util.Inventory;
 import com.jakewharton.picasso.OkHttp3Downloader;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.db.CategoryDatabase;
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
-import com.matnar.app.android.flippi.fragment.main.SearchResultFragment;
 import com.matnar.app.android.flippi.fragment.main.BarcodeScanFragment;
+import com.matnar.app.android.flippi.fragment.main.MainContentFragment;
 import com.matnar.app.android.flippi.fragment.main.MainFragment;
 import com.matnar.app.android.flippi.fragment.main.SavedListFragment;
+import com.matnar.app.android.flippi.fragment.main.SearchResultFragment;
 import com.matnar.app.android.flippi.fragment.main.SettingsFragment;
-import com.google.android.vending.licensing.util.IabHelper;
-import com.google.android.vending.licensing.util.IabResult;
-import com.google.android.vending.licensing.util.Inventory;
 import com.matnar.app.android.flippi.view.adapter.SavedSearchesAdapter;
+import com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView;
 import com.matnar.app.android.flippi.view.widget.AutoCompleteSearchView;
 import com.matnar.app.android.flippi.view.widget.FooterBarLayout;
 import com.squareup.picasso.Picasso;
@@ -72,6 +81,9 @@ public class MainActivity extends AppCompatActivity
     private CoordinatorLayout mCoordinatorLayout;
     private AppBarLayout mAppBarLayout;
 
+    private View mAppBarSearchView;
+    private AutoCompleteFocusTextView mAppBarSearchTextView;
+
     private DrawerLayout mDrawer;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
@@ -84,9 +96,6 @@ public class MainActivity extends AppCompatActivity
     private boolean mSearchItemVisible = false;
     private boolean mClearFavoritesItemVisible = false;
 
-    private AutoCompleteSearchView mSearchView = null;
-    private String mSearchQuery = null;
-    private boolean mSearchExpanded = false;
     private SavedSearchesAdapter mSearchAdapter;
 
     private PriceCheckDatabase mPriceCheckDatabase;
@@ -116,11 +125,64 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        mSearchAdapter = new SavedSearchesAdapter(this);
+
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.mainCoordinatorLayout);
         mAppBarLayout = (AppBarLayout) findViewById(R.id.appbar_layout);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+
+        mAppBarSearchView = findViewById(R.id.search_container);
+
+        final View searchBackButton = mAppBarSearchView.findViewById(R.id.search_query_back);
+        final View searchGoButton = mAppBarSearchView.findViewById(R.id.search_query_go);
+
+        mAppBarSearchTextView = (AutoCompleteFocusTextView) mAppBarSearchView.findViewById(R.id.search_query);
+        mAppBarSearchTextView.setAdapter(mSearchAdapter);
+        mAppBarSearchTextView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    searchGoButton.performClick();
+                }
+
+                return true;
+            }
+        });
+
+        searchBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
+                    getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
+
+                showAppBarSearch(false);
+            }
+        });
+
+        searchGoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = mAppBarSearchTextView.getText().toString();
+                mSearchAdapter.add(s);
+                mSearchAdapter.notifyDataSetChanged();
+
+                Rect rect = new Rect();
+                view.getGlobalVisibleRect(rect);
+                int cx  = rect.left + (view.getWidth() / 2);
+                int cy = rect.top + (view.getHeight() / 2);
+
+                mAppBarSearchTextView.clearFocus();
+                final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(mAppBarSearchTextView.getWindowToken(), 0);
+
+                setSearchQuery(s);
+                doSearch(s, false, cx, cy);
+            }
+        });
 
         mFAB = (FloatingActionButton) findViewById(R.id.fab);
         mFAB.setTag(R.drawable.ic_fab_camera);
@@ -160,8 +222,10 @@ public class MainActivity extends AppCompatActivity
             mFAB.setImageResource(res);
             mFAB.setTag(res);
 
-            mSearchQuery = savedInstanceState.getString("search_query");
-            mSearchExpanded = savedInstanceState.getBoolean("search_expanded");
+            mAppBarSearchTextView.setText(savedInstanceState.getString("search_query"));
+            if(savedInstanceState.getBoolean("search_expanded")) {
+                showAppBarSearch(true, false, savedInstanceState.getBoolean("search_focus"));
+            }
         }
 
         mPriceCheckDatabase = new PriceCheckDatabase(this);
@@ -200,8 +264,6 @@ public class MainActivity extends AppCompatActivity
                 this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
-
-        mSearchAdapter = new SavedSearchesAdapter(this);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -259,10 +321,9 @@ public class MainActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
 
         outState.putInt("fabimgres", (Integer) findViewById(R.id.fab).getTag());
-        if(mSearchView != null) {
-            outState.putString("search_query", mSearchView.getQuery().toString());
-            outState.putBoolean("search_expanded", !mSearchView.isIconified());
-        }
+        outState.putString("search_query", mAppBarSearchTextView.getText().toString());
+        outState.putBoolean("search_expanded", mAppBarSearchView.getVisibility() == View.VISIBLE);
+        outState.putBoolean("search_focus", mAppBarSearchTextView.hasFocus());
     }
 
     @Override
@@ -287,6 +348,17 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else {
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
+                super.onBackPressed();
+                showAppBarSearch(false);
+                return;
+            }
+
+            if(mAppBarSearchView.getVisibility() == View.VISIBLE) {
+                showAppBarSearch(false);
+                return;
+            }
+
             if(currentFragment != null && currentFragment instanceof MainActivityFragment) {
                 if(((MainActivityFragment) currentFragment).onBackPressed()) {
                     return;
@@ -304,23 +376,6 @@ public class MainActivity extends AppCompatActivity
 
         mSearchItem = menu.findItem(R.id.action_search);
         mSearchItem.setVisible(mSearchItemVisible);
-        MenuItemCompat.setOnActionExpandListener(mSearchItem, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                // Do something when collapsed
-                return true;  // Return true to collapse action view
-            }
-
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                //get focus
-                item.getActionView().clearFocus();
-                //get input method
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-                return true;  // Return true to expand action view
-            }
-        });
 
         mClearFavoritesItem = menu.findItem(R.id.action_favorites_clear);
         mClearFavoritesItem.setVisible(mClearFavoritesItemVisible);
@@ -336,48 +391,17 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mSearchView = (AutoCompleteSearchView) mSearchItem.getActionView();
-        mSearchView.setQueryHint(getString(R.string.search_hint));
-        mSearchView.setAdapter(mSearchAdapter);
-        if(mSearchQuery != null && (mSearchExpanded || mSearchQuery.length() > 0)) {
-            mSearchView.setQuery(mSearchQuery, false);
-            mSearchView.setIconified(false);
-        } else {
-            mSearchView.setIconified(!mSearchExpanded);
-        }
-
-        mSearchView.clearFocus();
-        mSearchView.setMaxWidth(Integer.MAX_VALUE);
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                mSearchView.dismissDropDown();
-                mSearchAdapter.add(s);
-                mSearchAdapter.notifyDataSetChanged();
-
-                MainActivity.this.doSearch(s, false, 0, 0);
-
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                return false;
-            }
-        });
-
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
+            showAppBarSearch(true);
+
             return true;
         }
 
@@ -550,23 +574,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setSearchQuery(String q) {
-        if(mSearchView == null) {
-            return;
-        }
-
         if(q == null) {
-            mSearchView.setQuery("", false);
-            mSearchView.setIconified(true);
-            mSearchView.clearFocus();
+            mAppBarSearchTextView.setText("");
+            showAppBarSearch(false);
         } else {
-            mSearchView.setQuery(q, false);
-            mSearchView.setIconified(false);
-            mSearchView.clearFocus();
+            mAppBarSearchTextView.setText(q);
         }
 
-        if(mSearchItem != null && q == null) {
-            mSearchItem.collapseActionView();
-        }
+        mAppBarSearchTextView.clearFocus();
+        mAppBarSearchTextView.dismissDropDown();
     }
 
     private View setFooter(int resId) {
@@ -630,6 +646,87 @@ public class MainActivity extends AppCompatActivity
         }
 
         mSearchItem.setVisible(show);
+    }
+
+    private void showAppBarSearch(boolean show) {
+        showAppBarSearch(show, true, true);
+    }
+
+    private void showAppBarSearch(boolean show, boolean animate, final boolean focus) {
+        if(!animate) {
+            mAppBarSearchView.setVisibility((show) ? View.VISIBLE : View.GONE);
+
+            return;
+        }
+
+        if(show && mAppBarSearchView.getVisibility() != View.VISIBLE) {
+            mAppBarSearchView.setVisibility(View.INVISIBLE);
+            mAppBarSearchView.post(new Runnable() {
+                @Override
+                public void run() {
+                    AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                            mAppBarSearchView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            if(!focus) {
+                                return;
+                            }
+
+                            mAppBarSearchView.findViewById(R.id.search_query).requestFocus();
+                            mAppBarSearchView.findViewById(R.id.search_query).performClick();
+                        }
+                    };
+
+                    View searchButton = mAppBarSearchView.findViewById(R.id.search_query_go);
+                    if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                        int cx = (int) searchButton.getX() + (searchButton.getWidth() / 2);
+                        int cy = (int) searchButton.getY() + (searchButton.getHeight() / 2);
+                        float radius = (float) Math.hypot(cx, cy);
+
+                        Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchView, cx, cy, 0, radius);
+                        anim.addListener(listener);
+                        anim.start();
+                    } else {
+                        mAppBarSearchView.animate()
+                                .alpha(1.0f)
+                                .setListener(listener)
+                                .start();
+                    }
+                }
+            });
+        } else if(!show && mAppBarSearchView.getVisibility() != View.GONE) {
+            View searchButton = mAppBarSearchView.findViewById(R.id.search_query_go);
+            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                int cx = (int) searchButton.getX() + (searchButton.getWidth() / 2);
+                int cy = (int) searchButton.getY() + (searchButton.getHeight() / 2);
+                float radius = (float) Math.hypot(cx, cy);
+
+                Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchView, cx, cy, radius, 0);
+                anim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mAppBarSearchView.setVisibility(View.GONE);
+                        mAppBarSearchTextView.setText("");
+                    }
+                });
+                anim.start();
+            } else {
+                mAppBarSearchView.animate()
+                        .alpha(0.0f)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                mAppBarSearchView.setVisibility(View.GONE);
+                                mAppBarSearchTextView.setText("");
+                            }
+                        })
+                        .start();
+            }
+        }
     }
 
     @SuppressWarnings("unused")
@@ -775,6 +872,17 @@ public class MainActivity extends AppCompatActivity
                mActivity.showSearchItem(show);
            }
         }
+
+        protected void showAppBarSearch(boolean show) {
+            if(mActivity != null) {
+                mActivity.showAppBarSearch(show);
+            }
+        }
+        protected void showAppBarSearch(boolean show, boolean animate, boolean focus) {
+            if(mActivity != null) {
+                mActivity.showAppBarSearch(show, animate, focus);
+            }
+        }
     }
 
     @SuppressWarnings("unused")
@@ -864,6 +972,12 @@ public class MainActivity extends AppCompatActivity
         protected void showSearchItem(boolean show) {
             if(mActivity != null) {
                 mActivity.showSearchItem(show);
+            }
+        }
+
+        protected void showAppBarSearch(boolean show) {
+            if(mActivity != null) {
+                mActivity.showAppBarSearch(show);
             }
         }
     }

@@ -172,6 +172,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         super.showClearFavorites(false);
         if(!mIsCategory) {
             super.showSearchItem(true);
+            super.showAppBarSearch(true, true, false);
             super.setActionBarTitle(getString(R.string.search_row_header_results));
         }
 

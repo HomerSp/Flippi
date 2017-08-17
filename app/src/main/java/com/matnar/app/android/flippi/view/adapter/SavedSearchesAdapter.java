@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
+import com.matnar.app.android.flippi.R;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -25,7 +27,7 @@ public class SavedSearchesAdapter extends ArrayAdapter<String> {
     boolean mItemsChanged = false;
 
     public SavedSearchesAdapter(@NonNull Context context) {
-        super(context, android.R.layout.simple_list_item_1);
+        super(context, R.layout.saved_searches_row);
 
         update();
     }

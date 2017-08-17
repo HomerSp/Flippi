@@ -4,10 +4,14 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 
-public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView implements View.OnClickListener {
+public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView implements View.OnClickListener, AdapterView.OnItemClickListener {
     private static final String TAG = "Flippi." + AutoCompleteFocusTextView.class.getSimpleName();
 
     public AutoCompleteFocusTextView(Context context) {
@@ -25,6 +29,7 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
 
     private void init() {
         setOnClickListener(this);
+        setOnItemClickListener(this);
     }
 
     @Override
@@ -33,11 +38,16 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
     }
 
     @Override
-    protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
-        super.onFocusChanged(focused, direction, previouslyFocusedRect);
-        if (focused && hasWindowFocus()) {
-            showDropDown();
+    public boolean onTouchEvent(MotionEvent event) {
+        if(!isPopupShowing()) {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_UP:
+                    performClick();
+                    break;
+            }
         }
+
+        return super.onTouchEvent(event);
     }
 
     @Override
@@ -46,5 +56,10 @@ public class AutoCompleteFocusTextView extends AppCompatAutoCompleteTextView imp
             view.requestFocus();
             showDropDown();
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        super.onEditorAction(EditorInfo.IME_ACTION_SEARCH);
     }
 }
