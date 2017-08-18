@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity
 
     private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLGikFct+yG55/usMKwo/QM8/nRT7UVz753cWblRvJbb634POG8JwZ3UI8bXz2n72XHlk+/hnbXw//BUh8qk6ZMe1rkWR1Zavn64hFysilt4HtFRAOcqsIwg3Ic7eAJjIqssw3HlhIDAUAJnZ6j44Xy8WnoPuzColDkYBEaNP3Li9qcstLrj+bZ3owv6PyKJDQeB4V2qNXsTDRtKDGfcqtAOsoGzBx4pTGhBDco1HLW3fZ4Bl6N/5tLpvVQ7vxYdW3WusQ+Y8jlxcvyXrBdHwd4V5kgnLEhxVVOqmMEFvPtXDQP63eHo89hUAZFet6+cnxcTmoKJ4Qe9IAAB9iCbrwIDAQAB";
 
+    private MainActivityHelper mHelper;
+
     private int mMediumAnimationDuration;
 
     private IabHelper mBillingHelper;
@@ -122,6 +124,8 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        mHelper = new MainActivityHelper(this);
+
         mMediumAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
         mSearchAdapter = new SavedSearchesAdapter(this);
@@ -157,7 +161,7 @@ public class MainActivity extends AppCompatActivity
                     getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
 
-                showAppBarSearch(false);
+                mHelper.showAppBarSearch(false);
             }
         });
 
@@ -181,8 +185,8 @@ public class MainActivity extends AppCompatActivity
                 final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mAppBarSearchTextView.getWindowToken(), 0);
 
-                setSearchQuery(s);
-                doSearch(s, false, cx, cy);
+                mHelper.setSearchQuery(s);
+                mHelper.doSearch(s, false, cx, cy);
             }
         });
 
@@ -226,7 +230,7 @@ public class MainActivity extends AppCompatActivity
 
             mAppBarSearchTextView.setText(savedInstanceState.getString("search_query"));
             if(savedInstanceState.getBoolean("search_expanded")) {
-                showAppBarSearch(true, false, savedInstanceState.getBoolean("search_focus"));
+                mHelper.showAppBarSearch(true, false, savedInstanceState.getBoolean("search_focus"));
             }
         }
 
@@ -352,12 +356,12 @@ public class MainActivity extends AppCompatActivity
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
             if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
                 super.onBackPressed();
-                showAppBarSearch(false);
+                mHelper.showAppBarSearch(false);
                 return;
             }
 
             if(mAppBarSearchContainer.getVisibility() == View.VISIBLE) {
-                showAppBarSearch(false);
+                mHelper.showAppBarSearch(false);
                 return;
             }
 
@@ -381,30 +385,25 @@ public class MainActivity extends AppCompatActivity
 
         mClearFavoritesItem = menu.findItem(R.id.action_favorites_clear);
         mClearFavoritesItem.setVisible(mClearFavoritesItemVisible);
-        mClearFavoritesItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                if(currentFragment != null && currentFragment instanceof SavedListFragment && currentFragment.isVisible()) {
-                    ((SavedListFragment)currentFragment).clearFavorites();
-                }
-
-                return true;
-            }
-        });
 
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        switch(item.getItemId()) {
+            case R.id.action_search: {
+                mHelper.showAppBarSearch(true);
+                break;
+            }
+            case R.id.action_favorites_clear: {
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                if (currentFragment != null && currentFragment instanceof SavedListFragment && currentFragment.isVisible()) {
+                    ((SavedListFragment) currentFragment).clearFavorites();
+                }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            showAppBarSearch(true);
-
-            return true;
+                break;
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -412,10 +411,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        switch(id) {
+        switch(item.getItemId()) {
             case R.id.nav_home: {
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
                 if(currentFragment != null && currentFragment instanceof MainFragment && currentFragment.isVisible()) {
@@ -480,253 +476,321 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
-        if(mLicenseChecked) {
-            listener.onLicenseCheck(mAdFreeLicense);
-            return;
+    public static class MainActivityHelper {
+        private MainActivity mActivity;
+
+        MainActivityHelper(MainActivity activity) {
+            mActivity = activity;
         }
 
-        mLicenseCheckListeners.add(listener);
-    }
-
-    private void doSearch(String query, boolean isBarcode, int cx, int cy) {
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-        if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
-            ((SearchResultFragment)currentFragment).doSearch(query, isBarcode);
-        } else {
-            getSupportFragmentManager().popBackStackImmediate("fragment_search_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-            SearchResultFragment fragment = new SearchResultFragment();
-
-            Bundle args = new Bundle();
-            args.putString("query", query);
-            args.putBoolean("is_barcode", isBarcode);
-
-            if(cx != 0 || cy != 0) {
-                args.putInt("cx", cx);
-                args.putInt("cy", cy);
+        public void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
+            if(mActivity == null) {
+                return;
             }
 
-            fragment.setArguments(args);
-
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
-            transaction.replace(R.id.fragment_container, fragment);
-            transaction.addToBackStack("fragment_search_result");
-            transaction.commit();
-        }
-    }
-
-    private String getDeviceID() {
-        return PreferenceManager.getDefaultSharedPreferences(this).getString("uuid", UUID.randomUUID().toString());
-    }
-
-    private PriceCheckDatabase getPriceCheckDatabase() {
-        return mPriceCheckDatabase;
-    }
-
-    private CategoryDatabase getCategoryDatabase() {
-        return mCategoryDatabase;
-    }
-
-    private SavedSearchesAdapter getSearchAdapter() {
-        return mSearchAdapter;
-    }
-
-    private void resetActionBar() {
-        if(mAppBarLayout.getY() < 0) {
-            CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mAppBarLayout.getLayoutParams();
-            AppBarLayout.Behavior behavior = (AppBarLayout.Behavior) params.getBehavior();
-            if (behavior != null) {
-                behavior.onNestedFling(mCoordinatorLayout, mAppBarLayout, null, 0, mAppBarLayout.getY(), true);
+            if (mActivity.mLicenseChecked) {
+                listener.onLicenseCheck(mActivity.mAdFreeLicense);
+                return;
             }
-        }
-    }
 
-    private void setFabIcon(final int res) {
-        if(res == 0) {
-            mFAB.hide();
-            return;
+            mActivity.mLicenseCheckListeners.add(listener);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            mFAB.animate().withEndAction(new Runnable() {
-                @Override
-                public void run() {
-                    if((Integer) mFAB.getTag() != res && mFAB.getVisibility() == View.VISIBLE) {
-                        mFAB.setTag(res);
-                        mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
-                            @Override
-                            public void onHidden(FloatingActionButton fab) {
-                                fab.setImageResource((Integer) fab.getTag());
-                                fab.show();
-                            }
-                        });
-                    } else {
-                        mFAB.setImageResource(res);
-                        mFAB.show();
-                    }
-                }
-            }).start();
-        } else {
-            mFAB.setImageResource(res);
-            mFAB.setTag(res);
-            mFAB.show();
-        }
-    }
-
-    private void setSearchQuery(String q) {
-        if(q == null) {
-            mAppBarSearchTextView.setText("");
-            showAppBarSearch(false);
-        } else {
-            mAppBarSearchTextView.setText(q);
+        public void doSearch(String query, boolean isBarcode) {
+            doSearch(query, isBarcode, 0, 0);
         }
 
-        mAppBarSearchTextView.clearFocus();
-        mAppBarSearchTextView.dismissDropDown();
-    }
+        public void doSearch(String query, boolean isBarcode, int cx, int cy) {
+            if(mActivity == null) {
+                return;
+            }
 
-    private View setFooter(int resId) {
-        TypedArray arr = getTheme().obtainStyledAttributes(new int[] {R.attr.actionBarSize});
-        final float translationY = -arr.getDimension(0, 0.0f);
-
-        if(resId != 0) {
-            View view = getLayoutInflater().inflate(resId, mFooter, false);
-
-            mFooter.setVisibility(View.INVISIBLE);
-            mFooter.removeAllViews();
-            mFooter.addView(view);
-            mFooter.setTranslationY(-translationY);
-            mFooter.setVisibility(View.VISIBLE);
-            mFooter.animate().cancel();
-            mFooter.animate()
-                    .translationY(0.0f)
-                    .setListener(null)
-                    .start();
-
-            return view;
-        } else {
-            mFooter.animate().cancel();
-            mFooter.animate()
-                    .translationY(-translationY)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            mFooter.removeAllViews();
-                            mFooter.setVisibility(View.GONE);
-                        }
-                    })
-                    .start();
-
-            return null;
-        }
-    }
-
-    private void setActionBarTitle(String str) {
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar == null) {
-            return;
-        }
-
-        actionBar.setTitle(str);
-    }
-
-    private void showClearFavorites(boolean show) {
-        if(mClearFavoritesItem == null) {
-            mClearFavoritesItemVisible = show;
-            return;
-        }
-
-        mClearFavoritesItem.setVisible(show);
-    }
-
-    private void showSearchItem(boolean show) {
-        if(mSearchItem == null) {
-            mSearchItemVisible = show;
-            return;
-        }
-
-        mSearchItem.setVisible(show);
-    }
-
-    private void showAppBarSearch(boolean show) {
-        showAppBarSearch(show, true, true);
-    }
-
-    private void showAppBarSearch(boolean show, boolean animate, final boolean focus) {
-        if(!animate) {
-            mAppBarSearchContainer.setVisibility((show) ? View.VISIBLE : View.GONE);
-
-            return;
-        }
-
-        if(show && mAppBarSearchContainer.getVisibility() != View.VISIBLE) {
-            mAppBarSearchContainer.setVisibility(View.INVISIBLE);
-            mAppBarSearchContainer.post(new Runnable() {
-                @Override
-                public void run() {
-                    AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                            mAppBarSearchContainer.setVisibility(View.VISIBLE);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            if(focus) {
-                                mAppBarSearchContainer.findViewById(R.id.search_query).requestFocus();
-                                mAppBarSearchContainer.findViewById(R.id.search_query).performClick();
-                            }
-                        }
-                    };
-
-                    mAppBarSearchContainer.animate().cancel();
-
-                    if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                        int cx = (int) mAppBarSearchGoButtonView.getX() + (mAppBarSearchGoButtonView.getWidth() / 2);
-                        int cy = (int) mAppBarSearchGoButtonView.getY() + (mAppBarSearchGoButtonView.getHeight() / 2);
-                        float radius = (float) Math.hypot(cx, cy);
-
-                        Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchContainer, cx, cy, 0, radius);
-                        anim.addListener(listener);
-                        anim.setDuration(mMediumAnimationDuration);
-                        anim.start();
-                    } else {
-                        mAppBarSearchContainer.animate()
-                                .alpha(1.0f)
-                                .setListener(listener)
-                                .setDuration(mMediumAnimationDuration)
-                                .start();
-                    }
-                }
-            });
-        } else if(!show && mAppBarSearchContainer.getVisibility() != View.GONE) {
-            AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mAppBarSearchContainer.setVisibility(View.GONE);
-                    mAppBarSearchTextView.setText("");
-                }
-            };
-
-            mAppBarSearchContainer.animate().cancel();
-
-            if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                int cx = (int) mAppBarSearchGoButtonView.getX() + (mAppBarSearchGoButtonView.getWidth() / 2);
-                int cy = (int) mAppBarSearchGoButtonView.getY() + (mAppBarSearchGoButtonView.getHeight() / 2);
-                float radius = (float) Math.hypot(cx, cy);
-
-                Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchContainer, cx, cy, radius, 0);
-                anim.addListener(listener);
-                anim.setDuration(mMediumAnimationDuration);
-                anim.start();
+            Fragment currentFragment = mActivity.getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
+                ((SearchResultFragment) currentFragment).doSearch(query, isBarcode);
             } else {
-                mAppBarSearchContainer.animate()
-                        .alpha(0.0f)
-                        .setListener(listener)
-                        .setDuration(mMediumAnimationDuration)
+                mActivity.getSupportFragmentManager().popBackStackImmediate("fragment_search_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+                SearchResultFragment fragment = new SearchResultFragment();
+
+                Bundle args = new Bundle();
+                args.putString("query", query);
+                args.putBoolean("is_barcode", isBarcode);
+
+                if (cx != 0 || cy != 0) {
+                    args.putInt("cx", cx);
+                    args.putInt("cy", cy);
+                }
+
+                fragment.setArguments(args);
+
+                FragmentTransaction transaction = mActivity.getSupportFragmentManager().beginTransaction();
+                transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
+                transaction.replace(R.id.fragment_container, fragment);
+                transaction.addToBackStack("fragment_search_result");
+                transaction.commit();
+            }
+        }
+
+        public String getDeviceID() {
+            if(mActivity == null) {
+                return "";
+            }
+
+            return PreferenceManager.getDefaultSharedPreferences(mActivity).getString("uuid", UUID.randomUUID().toString());
+        }
+
+        public PriceCheckDatabase getPriceCheckDatabase() {
+            if(mActivity == null) {
+                return null;
+            }
+
+            return mActivity.mPriceCheckDatabase;
+        }
+
+        public CategoryDatabase getCategoryDatabase() {
+            if(mActivity == null) {
+                return null;
+            }
+
+            return mActivity.mCategoryDatabase;
+        }
+
+        public SavedSearchesAdapter getSearchAdapter() {
+            if(mActivity == null) {
+                return null;
+            }
+
+            return mActivity.mSearchAdapter;
+        }
+
+        public void resetActionBar() {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (mActivity.mAppBarLayout.getY() < 0) {
+                CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) mActivity.mAppBarLayout.getLayoutParams();
+                AppBarLayout.Behavior behavior = (AppBarLayout.Behavior) params.getBehavior();
+                if (behavior != null) {
+                    behavior.onNestedFling(mActivity.mCoordinatorLayout, mActivity.mAppBarLayout, null, 0, mActivity.mAppBarLayout.getY(), true);
+                }
+            }
+        }
+
+        public void setFabIcon(final int res) {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (res == 0) {
+                mActivity.mFAB.hide();
+                return;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                mActivity.mFAB.animate().withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        if ((Integer) mActivity.mFAB.getTag() != res && mActivity.mFAB.getVisibility() == View.VISIBLE) {
+                            mActivity.mFAB.setTag(res);
+                            mActivity.mFAB.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+                                @Override
+                                public void onHidden(FloatingActionButton fab) {
+                                    fab.setImageResource((Integer) fab.getTag());
+                                    fab.show();
+                                }
+                            });
+                        } else {
+                            mActivity.mFAB.setImageResource(res);
+                            mActivity.mFAB.show();
+                        }
+                    }
+                }).start();
+            } else {
+                mActivity.mFAB.setImageResource(res);
+                mActivity.mFAB.setTag(res);
+                mActivity.mFAB.show();
+            }
+        }
+
+        public void setSearchQuery(String q) {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (q == null) {
+                mActivity.mAppBarSearchTextView.setText("");
+                showAppBarSearch(false);
+            } else {
+                mActivity.mAppBarSearchTextView.setText(q);
+            }
+
+            mActivity.mAppBarSearchTextView.clearFocus();
+            mActivity.mAppBarSearchTextView.dismissDropDown();
+        }
+
+        public View setFooter(int resId) {
+            if(mActivity == null) {
+                return null;
+            }
+
+            TypedArray arr = mActivity.getTheme().obtainStyledAttributes(new int[]{R.attr.actionBarSize});
+            final float translationY = -arr.getDimension(0, 0.0f);
+
+            if (resId != 0) {
+                View view = mActivity.getLayoutInflater().inflate(resId, mActivity.mFooter, false);
+
+                mActivity.mFooter.setVisibility(View.INVISIBLE);
+                mActivity.mFooter.removeAllViews();
+                mActivity.mFooter.addView(view);
+                mActivity.mFooter.setTranslationY(-translationY);
+                mActivity.mFooter.setVisibility(View.VISIBLE);
+                mActivity.mFooter.animate().cancel();
+                mActivity.mFooter.animate()
+                        .translationY(0.0f)
+                        .setListener(null)
                         .start();
+
+                return view;
+            } else {
+                mActivity.mFooter.animate().cancel();
+                mActivity.mFooter.animate()
+                        .translationY(-translationY)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                mActivity.mFooter.removeAllViews();
+                                mActivity.mFooter.setVisibility(View.GONE);
+                            }
+                        })
+                        .start();
+
+                return null;
+            }
+        }
+
+        public void setActionBarTitle(String str) {
+            if(mActivity == null) {
+                return;
+            }
+
+            ActionBar actionBar = mActivity.getSupportActionBar();
+            if (actionBar == null) {
+                return;
+            }
+
+            actionBar.setTitle(str);
+        }
+
+        public void showClearFavorites(boolean show) {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (mActivity.mClearFavoritesItem == null) {
+                mActivity.mClearFavoritesItemVisible = show;
+                return;
+            }
+
+            mActivity.mClearFavoritesItem.setVisible(show);
+        }
+
+        public void showSearchItem(boolean show) {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (mActivity.mSearchItem == null) {
+                mActivity.mSearchItemVisible = show;
+                return;
+            }
+
+            mActivity.mSearchItem.setVisible(show);
+        }
+
+        public void showAppBarSearch(boolean show) {
+            showAppBarSearch(show, true, true);
+        }
+
+        public void showAppBarSearch(boolean show, boolean animate, final boolean focus) {
+            if(mActivity == null) {
+                return;
+            }
+
+            if (!animate) {
+                mActivity.mAppBarSearchContainer.setVisibility((show) ? View.VISIBLE : View.GONE);
+
+                return;
+            }
+
+            if (show && mActivity.mAppBarSearchContainer.getVisibility() != View.VISIBLE) {
+                mActivity.mAppBarSearchContainer.setVisibility(View.INVISIBLE);
+                mActivity.mAppBarSearchContainer.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+                                mActivity.mAppBarSearchContainer.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                if (focus) {
+                                    mActivity.mAppBarSearchContainer.findViewById(R.id.search_query).requestFocus();
+                                    mActivity.mAppBarSearchContainer.findViewById(R.id.search_query).performClick();
+                                }
+                            }
+                        };
+
+                        mActivity.mAppBarSearchContainer.animate().cancel();
+
+                        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            int cx = (int) mActivity.mAppBarSearchGoButtonView.getX() + (mActivity.mAppBarSearchGoButtonView.getWidth() / 2);
+                            int cy = (int) mActivity.mAppBarSearchGoButtonView.getY() + (mActivity.mAppBarSearchGoButtonView.getHeight() / 2);
+                            float radius = (float) Math.hypot(cx, cy);
+
+                            Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, 0, radius);
+                            anim.addListener(listener);
+                            anim.setDuration(mActivity.mMediumAnimationDuration);
+                            anim.start();
+                        } else {
+                            mActivity.mAppBarSearchContainer.animate()
+                                    .alpha(1.0f)
+                                    .setListener(listener)
+                                    .setDuration(mActivity.mMediumAnimationDuration)
+                                    .start();
+                        }
+                    }
+                });
+            } else if (!show && mActivity.mAppBarSearchContainer.getVisibility() != View.GONE) {
+                AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mActivity.mAppBarSearchContainer.setVisibility(View.GONE);
+                        mActivity.mAppBarSearchTextView.setText("");
+                    }
+                };
+
+                mActivity.mAppBarSearchContainer.animate().cancel();
+
+                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    int cx = (int) mActivity.mAppBarSearchGoButtonView.getX() + (mActivity.mAppBarSearchGoButtonView.getWidth() / 2);
+                    int cy = (int) mActivity.mAppBarSearchGoButtonView.getY() + (mActivity.mAppBarSearchGoButtonView.getHeight() / 2);
+                    float radius = (float) Math.hypot(cx, cy);
+
+                    Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, radius, 0);
+                    anim.addListener(listener);
+                    anim.setDuration(mActivity.mMediumAnimationDuration);
+                    anim.start();
+                } else {
+                    mActivity.mAppBarSearchContainer.animate()
+                            .alpha(0.0f)
+                            .setListener(listener)
+                            .setDuration(mActivity.mMediumAnimationDuration)
+                            .start();
+                }
             }
         }
     }
@@ -781,7 +845,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("unused")
     public abstract static class MainActivityFragment extends Fragment {
-        private MainActivity mActivity;
+        private MainActivityHelper mHelper;
 
         public MainActivityFragment() {
         }
@@ -791,105 +855,26 @@ public class MainActivity extends AppCompatActivity
             super.onAttach(context);
 
             if(getActivity() instanceof MainActivity) {
-                mActivity = (MainActivity) getActivity();
+                mHelper = ((MainActivity) getActivity()).mHelper;
             }
-        }
-
-        protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
-            if(mActivity != null) {
-                mActivity.addOnLicenseCheckListener(listener);
-            }
-        }
-
-        protected void doSearch(String query, boolean isBarcode) {
-            doSearch(query, isBarcode, 0, 0);
-        }
-
-        protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
-            if(mActivity != null) {
-                mActivity.doSearch(query, isBarcode, cx, cy);
-            }
-        }
-
-        protected String getDeviceID() {
-            return (mActivity != null) ? mActivity.getDeviceID() : "";
-        }
-
-        protected PriceCheckDatabase getPriceCheckDatabase() {
-            return (mActivity != null) ? mActivity.getPriceCheckDatabase() : null;
-        }
-
-        protected CategoryDatabase getCategoryDatabase() {
-            return (mActivity != null) ? mActivity.getCategoryDatabase() : null;
-        }
-
-        protected SavedSearchesAdapter getSearchAdapter() {
-            return (mActivity != null) ? mActivity.getSearchAdapter() : null;
-        }
-
-        protected FragmentManager getSupportFragmentManager() {
-            return (mActivity != null) ? mActivity.getSupportFragmentManager() : null;
         }
 
         protected boolean onBackPressed() {
             return false;
         }
 
-        protected void resetActionBar() {
-            if(mActivity != null) {
-                mActivity.resetActionBar();
+        protected MainActivityHelper getHelper() {
+            if(mHelper == null) {
+                return new MainActivityHelper(null);
             }
-        }
 
-        protected void setFabIcon(int res) {
-            if(mActivity != null) {
-                mActivity.setFabIcon(res);
-            }
-        }
-
-        protected void setSearchQuery(String q) {
-            if(mActivity != null) {
-                mActivity.setSearchQuery(q);
-            }
-        }
-
-        protected View setFooter(int resId) {
-            return (mActivity != null) ? mActivity.setFooter(resId) : null;
-        }
-
-        protected void setActionBarTitle(String str) {
-            if(mActivity != null) {
-                mActivity.setActionBarTitle(str);
-            }
-        }
-
-        protected void showClearFavorites(boolean show) {
-            if(mActivity != null) {
-                mActivity.showClearFavorites(show);
-            }
-        }
-
-        protected void showSearchItem(boolean show) {
-           if(mActivity != null) {
-               mActivity.showSearchItem(show);
-           }
-        }
-
-        protected void showAppBarSearch(boolean show) {
-            if(mActivity != null) {
-                mActivity.showAppBarSearch(show);
-            }
-        }
-        protected void showAppBarSearch(boolean show, boolean animate, boolean focus) {
-            if(mActivity != null) {
-                mActivity.showAppBarSearch(show, animate, focus);
-            }
+            return mHelper;
         }
     }
 
     @SuppressWarnings("unused")
     public abstract static class MainActivityPreferenceFragment extends PreferenceFragmentCompat {
-        private MainActivity mActivity;
+        private MainActivityHelper mHelper;
 
         public MainActivityPreferenceFragment() {
         }
@@ -899,88 +884,20 @@ public class MainActivity extends AppCompatActivity
             super.onAttach(context);
 
             if(getActivity() instanceof MainActivity) {
-                mActivity = (MainActivity) getActivity();
+                mHelper = ((MainActivity) getActivity()).mHelper;
             }
-        }
-
-        protected void addOnLicenseCheckListener(OnLicenseCheckListener listener) {
-            if(mActivity != null) {
-                mActivity.addOnLicenseCheckListener(listener);
-            }
-        }
-
-        protected void doSearch(String query, boolean isBarcode) {
-            doSearch(query, isBarcode, 0, 0);
-        }
-
-        protected void doSearch(String query, boolean isBarcode, int cx, int cy) {
-            if(mActivity != null) {
-                mActivity.doSearch(query, isBarcode, cx, cy);
-            }
-        }
-
-        protected String getDeviceID() {
-            return (mActivity != null) ? mActivity.getDeviceID() : "";
-        }
-
-        protected PriceCheckDatabase getPriceCheckDatabase() {
-            return (mActivity != null) ? mActivity.getPriceCheckDatabase() : null;
-        }
-
-        protected CategoryDatabase getCategoryDatabase() {
-            return (mActivity != null) ? mActivity.getCategoryDatabase() : null;
-        }
-
-        protected SavedSearchesAdapter getSearchAdapter() {
-            return (mActivity != null) ? mActivity.getSearchAdapter() : null;
-        }
-
-        protected FragmentManager getSupportFragmentManager() {
-            return (mActivity != null) ? mActivity.getSupportFragmentManager() : null;
         }
 
         protected boolean onBackPressed() {
             return false;
         }
 
-        protected void setFabIcon(int res) {
-            if(mActivity != null) {
-                mActivity.setFabIcon(res);
+        protected MainActivityHelper getHelper() {
+            if(mHelper == null) {
+                return new MainActivityHelper(null);
             }
-        }
 
-        protected void setSearchQuery(String q) {
-            if(mActivity != null) {
-                mActivity.setSearchQuery(q);
-            }
-        }
-
-        protected View setFooter(int resId) {
-            return (mActivity != null) ? mActivity.setFooter(resId) : null;
-        }
-
-        protected void setActionBarTitle(String str) {
-            if(mActivity != null) {
-                mActivity.setActionBarTitle(str);
-            }
-        }
-
-        protected void showClearFavorites(boolean show) {
-            if(mActivity != null) {
-                mActivity.showClearFavorites(show);
-            }
-        }
-
-        protected void showSearchItem(boolean show) {
-            if(mActivity != null) {
-                mActivity.showSearchItem(show);
-            }
-        }
-
-        protected void showAppBarSearch(boolean show) {
-            if(mActivity != null) {
-                mActivity.showAppBarSearch(show);
-            }
+            return mHelper;
         }
     }
 }

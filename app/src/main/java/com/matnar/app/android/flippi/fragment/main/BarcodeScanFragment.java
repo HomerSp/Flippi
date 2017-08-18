@@ -48,11 +48,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        super.setFooter(0);
-        super.setFabIcon(R.drawable.ic_fab_torch_off);
-        super.showClearFavorites(false);
-        super.showSearchItem(true);
-        super.setActionBarTitle(getString(R.string.app_name));
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
+        getHelper().showClearFavorites(false);
+        getHelper().showSearchItem(true);
+        getHelper().setActionBarTitle(getString(R.string.app_name));
 
 
         View rootView = inflater.inflate(R.layout.fragment_main_barcode_scanner, container, false);
@@ -143,7 +143,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     public void barcodeResult(BarcodeResult result) {
         mView.pauseAndWait();
 
-        super.doSearch(result.getText(), true);
+        getHelper().doSearch(result.getText(), true);
     }
 
     @Override
@@ -162,11 +162,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
 
     @Override
     public void onTorchOn() {
-        super.setFabIcon(R.drawable.ic_fab_torch_on);
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_on);
     }
 
     @Override
     public void onTorchOff() {
-        super.setFabIcon(R.drawable.ic_fab_torch_off);
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
     }
 }

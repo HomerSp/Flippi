@@ -24,11 +24,11 @@ public class SettingsFragment extends MainActivity.MainActivityPreferenceFragmen
                              Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
-        super.setFooter(0);
-        super.setFabIcon(0);
-        super.showClearFavorites(false);
-        super.showSearchItem(false);
-        super.setActionBarTitle(getContext().getString(R.string.app_name));
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(0);
+        getHelper().showClearFavorites(false);
+        getHelper().showSearchItem(false);
+        getHelper().setActionBarTitle(getContext().getString(R.string.app_name));
 
         return view;
     }

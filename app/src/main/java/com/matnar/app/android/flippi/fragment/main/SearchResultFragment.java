@@ -96,7 +96,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             @Override
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
                 item.setSaved(starred);
-                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
 
                 if(starred) {
                     if(mSnackbar != null) {
@@ -110,7 +110,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                         item.setSaved(false);
                         mResultsAdapter.notifyItemChanged(item);
-                        new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                        new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -127,7 +127,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                             item.setSaved(true);
                             mResultsAdapter.notifyItemChanged(item);
-                            new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
                     mSnackbar.show();
@@ -167,13 +167,13 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        super.setFooter(0);
-        super.setFabIcon(R.drawable.ic_fab_camera);
-        super.showClearFavorites(false);
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getHelper().showClearFavorites(false);
         if(!mIsCategory) {
-            super.showSearchItem(true);
-            super.showAppBarSearch(true, true, false);
-            super.setActionBarTitle(getString(R.string.search_row_header_results));
+            getHelper().showSearchItem(true);
+            getHelper().showAppBarSearch(true, true, false);
+            getHelper().setActionBarTitle(getString(R.string.search_row_header_results));
         }
 
         mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
@@ -217,9 +217,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                 }
 
                 if (dy > 0) {
-                    SearchResultFragment.super.setFabIcon(0);
+                    getHelper().setFabIcon(0);
                 } else if (dy < 0) {
-                    SearchResultFragment.super.setFabIcon(R.drawable.ic_fab_camera);
+                    getHelper().setFabIcon(R.drawable.ic_fab_camera);
                 }
             }
         });
@@ -227,7 +227,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.initView(mResultsView);
 
         if(mIsBarcode) {
-            super.setSearchQuery(null);
+            getHelper().setSearchQuery(null);
         }
 
         if(savedInstanceState != null) {
@@ -257,14 +257,14 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
         if (!mHaveResults && mSort == null) {
             if(mCategories.size() == 0) {
-                new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
+                new CategoryDatabase.GetAllTask(getHelper().getCategoryDatabase(), "cex")
                         .setResultListener(new CategoryDatabase.GetAllListener() {
                             @Override
                             public void onResult(PriceCheckCategories results) {
                                 mCategories.addAll(results);
                                 mResultsAdapter.setCategories(mCategories);
                                 if(mQuery == null && mFilter == null) {
-                                    mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
+                                    mResultsAdapter.setQuery(null, mIsBarcode, mIsCategory);
                                     mResultsAdapter.setHasCategory(false);
                                     mResultsAdapter.setNoResults(true);
                                     mResultsAdapter.setLoading(false);
@@ -377,7 +377,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onResult(BarcodeProvider.BarcodeInformation result) {
                             if (result != null) {
                                 mQueryPending = result.getName();
-                                SearchResultFragment.super.setSearchQuery(mQueryPending);
+                                getHelper().setSearchQuery(mQueryPending);
                                 SearchResultFragment.this.doSearch(mQueryPending, false);
                             } else {
                                 update();
@@ -389,9 +389,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         };
 
         if (page > 0) {
-            PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, page, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         } else {
-            PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         }
     }
 

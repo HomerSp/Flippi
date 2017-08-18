@@ -61,7 +61,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                 item.setSaved(starred);
                 mResultsAdapter.notifyItemChanged(item);
 
-                new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
 
                 if(starred) {
                     if(mSnackbar != null) {
@@ -74,7 +74,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                             item.setSaved(false);
                             mResultsAdapter.notifyItemChanged(item);
-                            new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -90,7 +90,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                             item.setSaved(true);
                             mResultsAdapter.notifyItemChanged(item);
-                            new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), item, 0).execute();
+                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -133,11 +133,11 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mFooter = super.setFooter(R.layout.saved_list_footer);
-        super.setFabIcon(R.drawable.ic_fab_camera);
-        super.showClearFavorites(true);
-        super.showSearchItem(false);
-        super.setActionBarTitle(getString(R.string.saved_row_header_results));
+        mFooter = getHelper().setFooter(R.layout.saved_list_footer);
+        getHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getHelper().showClearFavorites(true);
+        getHelper().showSearchItem(false);
+        getHelper().setActionBarTitle(getString(R.string.saved_row_header_results));
 
         if(mFooter == null) {
             Log.e(TAG, "Footer is null, aborting!");
@@ -161,9 +161,9 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
                 }
 
                 if(dy > 0) {
-                    SavedListFragment.super.setFabIcon(0);
+                    getHelper().setFabIcon(0);
                 } else if(dy < 0) {
-                    SavedListFragment.super.setFabIcon(R.drawable.ic_fab_camera);
+                    getHelper().setFabIcon(R.drawable.ic_fab_camera);
                 }
             }
         });
@@ -237,7 +237,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
 
                             updateTotals();
 
-                            new PriceCheckDatabase.UpdateTask(SavedListFragment.super.getPriceCheckDatabase(), mResults, 0).execute();
+                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), mResults, 0).execute();
                         }
                     });
 
@@ -270,7 +270,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
             }
         };
 
-        new PriceCheckDatabase.ClearTask(super.getPriceCheckDatabase(), 0)
+        new PriceCheckDatabase.ClearTask(getHelper().getPriceCheckDatabase(), 0)
                 .setResultListener(listener)
                 .execute();
     }
@@ -284,7 +284,7 @@ public class SavedListFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setError(false);
         mResultsAdapter.notifyDataSetChanged();
 
-        new PriceCheckDatabase.GetAllTask(super.getPriceCheckDatabase(), 0)
+        new PriceCheckDatabase.GetAllTask(getHelper().getPriceCheckDatabase(), 0)
                 .setResultListener(new PriceCheckDatabase.GetAllListener() {
                     @Override
                     public void onResult(PriceCheckProvider.PriceCheckItems results) {
