@@ -38,7 +38,9 @@ public class SavedSearchesAdapter extends ArrayAdapter<String> {
             return;
         }
 
+        mItems.remove(str);
         mItems.add(0, str);
+        super.remove(str);
         super.insert(str, 0);
 
         mItemsChanged = true;
