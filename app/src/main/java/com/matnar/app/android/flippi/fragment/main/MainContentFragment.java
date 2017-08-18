@@ -69,7 +69,12 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                searchesAdapter.add(mSearchView.getText().toString());
+                String s = mSearchView.getText().toString();
+                if(s.isEmpty()) {
+                    return;
+                }
+
+                searchesAdapter.add(s);
                 searchesAdapter.notifyDataSetChanged();
 
                 Rect rect = new Rect();
@@ -81,8 +86,8 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
                 final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
 
-                MainContentFragment.super.setSearchQuery(mSearchView.getText().toString());
-                MainContentFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
+                MainContentFragment.super.setSearchQuery(s);
+                MainContentFragment.super.doSearch(s, false, cx, cy);
             }
         });
 

@@ -167,6 +167,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 String s = mAppBarSearchTextView.getText().toString();
+                if(s.isEmpty()) {
+                    return;
+                }
+
                 mSearchAdapter.add(s);
                 mSearchAdapter.notifyDataSetChanged();
 
