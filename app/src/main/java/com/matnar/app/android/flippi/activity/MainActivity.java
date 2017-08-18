@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String BASE64_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLGikFct+yG55/usMKwo/QM8/nRT7UVz753cWblRvJbb634POG8JwZ3UI8bXz2n72XHlk+/hnbXw//BUh8qk6ZMe1rkWR1Zavn64hFysilt4HtFRAOcqsIwg3Ic7eAJjIqssw3HlhIDAUAJnZ6j44Xy8WnoPuzColDkYBEaNP3Li9qcstLrj+bZ3owv6PyKJDQeB4V2qNXsTDRtKDGfcqtAOsoGzBx4pTGhBDco1HLW3fZ4Bl6N/5tLpvVQ7vxYdW3WusQ+Y8jlxcvyXrBdHwd4V5kgnLEhxVVOqmMEFvPtXDQP63eHo89hUAZFet6+cnxcTmoKJ4Qe9IAAB9iCbrwIDAQAB";
 
-    private int mRevealAnimationDuration;
+    private int mMediumAnimationDuration;
 
     private IabHelper mBillingHelper;
     private Handler mLicenseHandler;
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        mRevealAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
+        mMediumAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
         mSearchAdapter = new SavedSearchesAdapter(this);
 
@@ -174,8 +174,8 @@ public class MainActivity extends AppCompatActivity
 
                 Rect rect = new Rect();
                 view.getGlobalVisibleRect(rect);
-                int cx  = rect.left + (view.getWidth() / 2);
-                int cy = rect.top + (view.getHeight() / 2);
+                int cx  = (int)view.getX() + (view.getWidth() / 2);
+                int cy = (int)view.getY() + (view.getHeight() / 2);
 
                 mAppBarSearchTextView.clearFocus();
                 final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity
         if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
             ((SearchResultFragment)currentFragment).doSearch(query, isBarcode);
         } else {
-            getSupportFragmentManager().popBackStackImmediate("fragment_barcode_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getSupportFragmentManager().popBackStackImmediate("fragment_search_result", FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
             SearchResultFragment fragment = new SearchResultFragment();
 
@@ -512,7 +512,7 @@ public class MainActivity extends AppCompatActivity
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
             transaction.replace(R.id.fragment_container, fragment);
-            transaction.addToBackStack("fragment_barcode_result");
+            transaction.addToBackStack("fragment_search_result");
             transaction.commit();
         }
     }
@@ -690,13 +690,13 @@ public class MainActivity extends AppCompatActivity
 
                         Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchContainer, cx, cy, 0, radius);
                         anim.addListener(listener);
-                        anim.setDuration(mRevealAnimationDuration);
+                        anim.setDuration(mMediumAnimationDuration);
                         anim.start();
                     } else {
                         mAppBarSearchContainer.animate()
                                 .alpha(1.0f)
                                 .setListener(listener)
-                                .setDuration(mRevealAnimationDuration)
+                                .setDuration(mMediumAnimationDuration)
                                 .start();
                     }
                 }
@@ -719,13 +719,13 @@ public class MainActivity extends AppCompatActivity
 
                 Animator anim = ViewAnimationUtils.createCircularReveal(mAppBarSearchContainer, cx, cy, radius, 0);
                 anim.addListener(listener);
-                anim.setDuration(mRevealAnimationDuration);
+                anim.setDuration(mMediumAnimationDuration);
                 anim.start();
             } else {
                 mAppBarSearchContainer.animate()
                         .alpha(0.0f)
                         .setListener(listener)
-                        .setDuration(mRevealAnimationDuration)
+                        .setDuration(mMediumAnimationDuration)
                         .start();
             }
         }
