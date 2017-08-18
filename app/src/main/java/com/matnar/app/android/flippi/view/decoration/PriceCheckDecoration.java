@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
@@ -31,13 +32,12 @@ public class PriceCheckDecoration extends DividerItemDecoration {
         setOrientation(orientation);
     }
 
-    @SuppressLint("NewApi")
     @Override
     public void onDraw(Canvas canvas, RecyclerView parent, RecyclerView.State state) {
         canvas.save();
         final int left;
         final int right;
-        if (parent.getClipToPadding()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && parent.getClipToPadding()) {
             left = parent.getPaddingLeft();
             right = parent.getWidth() - parent.getPaddingRight();
             canvas.clipRect(left, parent.getPaddingTop(), right,

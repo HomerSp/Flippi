@@ -21,10 +21,10 @@ import java.util.List;
 public class SavedSearchesAdapter extends ArrayAdapter<String> {
     private static final String TAG = "Flippi." + SavedSearchesAdapter.class.getSimpleName();
 
-    static final String SEARCHES_NAME = "searches.bin";
+    private static final String SEARCHES_NAME = "searches.bin";
 
     private List<String> mItems = new ArrayList<>();
-    boolean mItemsChanged = false;
+    private boolean mItemsChanged = false;
 
     public SavedSearchesAdapter(@NonNull Context context) {
         super(context, R.layout.saved_searches_row);

@@ -35,6 +35,7 @@ import com.squareup.picasso.Picasso;
 public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "Flippi." + PriceCheckAdapter.class.getSimpleName();
 
+    // ViewHolder types
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
     private static final int TYPE_FOOTER = 2;
@@ -242,7 +243,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 }
 
                 ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-                colorAnimation.setDuration(mShortAnimationDuration); // milliseconds
+                colorAnimation.setDuration(mShortAnimationDuration);
                 colorAnimation.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationStart(Animator animation) {
@@ -275,12 +276,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mVoucherPriceView.setText(PriceCheckRegion.getPrice(region, info.getBuyVoucherPrice()));
 
             mStarView.setTag(info.isSaved());
+            mStarView.setOnClickListener(this);
             TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
             star.resetTransition();
             if(info.isSaved()) {
                 star.startTransition(1);
             }
-            mStarView.setOnClickListener(this);
 
             Picasso.with(context).load(info.getImage()).into(mImageView);
         }
@@ -290,12 +291,14 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             if(view.equals(mStarView)) {
                 boolean starred = !(Boolean) mStarView.getTag();
                 mStarView.setTag(starred);
+
                 TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
                 if(starred) {
                     star.startTransition(mShortAnimationDuration);
                 } else {
                     star.reverseTransition(mShortAnimationDuration);
                 }
+
                 if(mOnStarredListener != null) {
                     mOnStarredListener.onStarred(mInfo, starred);
                 }
