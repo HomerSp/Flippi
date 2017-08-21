@@ -2,6 +2,7 @@ package com.matnar.app.android.flippi.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
@@ -124,8 +125,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        mHelper = new MainActivityHelper(this);
-
         mMediumAnimationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
         mSearchAdapter = new SavedSearchesAdapter(this);
@@ -161,7 +160,7 @@ public class MainActivity extends AppCompatActivity
                     getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
 
-                mHelper.showAppBarSearch(false);
+                getHelper().showAppBarSearch(false);
             }
         });
 
@@ -185,8 +184,8 @@ public class MainActivity extends AppCompatActivity
                 final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mAppBarSearchTextView.getWindowToken(), 0);
 
-                mHelper.setSearchQuery(s);
-                mHelper.doSearch(s, false, cx, cy);
+                getHelper().setSearchQuery(s);
+                getHelper().doSearch(s, false, cx, cy);
             }
         });
 
@@ -230,7 +229,7 @@ public class MainActivity extends AppCompatActivity
 
             mAppBarSearchTextView.setText(savedInstanceState.getString("search_query"));
             if(savedInstanceState.getBoolean("search_expanded")) {
-                mHelper.showAppBarSearch(true, false, savedInstanceState.getBoolean("search_focus"));
+                getHelper().showAppBarSearch(true, false, savedInstanceState.getBoolean("search_focus"));
             }
         }
 
@@ -356,12 +355,12 @@ public class MainActivity extends AppCompatActivity
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
             if(currentFragment != null && currentFragment instanceof SearchResultFragment && currentFragment.isVisible()) {
                 super.onBackPressed();
-                mHelper.showAppBarSearch(false);
+                getHelper().showAppBarSearch(false);
                 return;
             }
 
             if(mAppBarSearchContainer.getVisibility() == View.VISIBLE) {
-                mHelper.showAppBarSearch(false);
+                getHelper().showAppBarSearch(false);
                 return;
             }
 
@@ -393,7 +392,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_search: {
-                mHelper.showAppBarSearch(true);
+                getHelper().showAppBarSearch(true);
                 break;
             }
             case R.id.action_favorites_clear: {
@@ -474,6 +473,14 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private MainActivityHelper getHelper() {
+        if(mHelper == null) {
+            mHelper = new MainActivityHelper(this);
+        }
+
+        return mHelper;
     }
 
     public static class MainActivityHelper {
@@ -855,7 +862,7 @@ public class MainActivity extends AppCompatActivity
             super.onAttach(context);
 
             if(getActivity() instanceof MainActivity) {
-                mHelper = ((MainActivity) getActivity()).mHelper;
+                mHelper = ((MainActivity) getActivity()).getHelper();
             }
         }
 
@@ -884,7 +891,7 @@ public class MainActivity extends AppCompatActivity
             super.onAttach(context);
 
             if(getActivity() instanceof MainActivity) {
-                mHelper = ((MainActivity) getActivity()).mHelper;
+                mHelper = ((MainActivity) getActivity()).getHelper();
             }
         }
 
