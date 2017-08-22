@@ -300,6 +300,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         outState.putParcelable("categories", mCategories);
         outState.putString("filter", mFilter);
         outState.putLong("filter_category", mFilterCategory);
+        outState.putString("sort", mSort);
     }
 
     @Override
