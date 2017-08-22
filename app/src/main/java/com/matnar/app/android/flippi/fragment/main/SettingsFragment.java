@@ -23,7 +23,7 @@ public class SettingsFragment extends MainActivity.MainActivityPreferenceFragmen
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
-
+      
         getHelper().setFooter(0);
         getHelper().setFabIcon(0);
         getHelper().showClearFavorites(false);
