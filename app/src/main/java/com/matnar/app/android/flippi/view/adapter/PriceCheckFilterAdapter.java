@@ -97,7 +97,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
     public PriceCheckFilterAdapter(Context context, AppCompatSpinner spinner) {
         mContext = context;
         mSpinner = spinner;
-        mItems.add(new FilterItem(mContext.getString(R.string.search_row_filter_clear), null, true));
+        mItems.add(new FilterItem(mContext.getString(R.string.search_row_filter_clear), 0, null, true));
     }
 
     @Override
@@ -165,7 +165,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
     public void setItems(PriceCheckCategories categories) {
         List<PriceCheckFilterAdapter.FilterItem> items = new ArrayList<>();
         for(PriceCheckCategories.PriceCheckCategory c: categories) {
-            PriceCheckFilterAdapter.FilterItem item = new PriceCheckFilterAdapter.FilterItem(c.getName(), null);
+            PriceCheckFilterAdapter.FilterItem item = new PriceCheckFilterAdapter.FilterItem(c.getName(), c.getCategoryID(), null);
             if(c.getChildren().size() > 0) {
                 toFilter(item, c.getChildren());
             }
@@ -174,7 +174,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
         }
 
         mItems.clear();
-        mItems.add(new FilterItem(mContext.getString(R.string.search_row_filter_clear), null, true));
+        mItems.add(new FilterItem(mContext.getString(R.string.search_row_filter_clear), 0, null, true));
         mItems.addAll(items);
     }
 
@@ -210,7 +210,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
     private void toFilter(PriceCheckFilterAdapter.FilterItem item, PriceCheckCategories categories) {
         for(PriceCheckCategories.PriceCheckCategory c: categories) {
-            PriceCheckFilterAdapter.FilterItem newItem = new PriceCheckFilterAdapter.FilterItem(c.getName(), item);
+            PriceCheckFilterAdapter.FilterItem newItem = new PriceCheckFilterAdapter.FilterItem(c.getName(), c.getCategoryID(), item);
             if(c.getChildren().size() > 0) {
                 toFilter(newItem, c.getChildren());
             }
@@ -235,7 +235,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
                         mOnItemClickListener.onNothingSelected();
                     } else {
-                        mOnItemClickListener.onItemClick(pos, item.getName());
+                        mOnItemClickListener.onItemClick(pos, item.getName(), item.getID());
                     }
                 }
 
@@ -261,7 +261,7 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
     };
 
     public interface OnItemClickListener {
-        void onItemClick(int pos, String name);
+        void onItemClick(int pos, String name, long id);
         void onNothingSelected();
     }
 
@@ -269,18 +269,20 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
         void onRowClick(int pos);
     }
 
-    static class FilterItem {
+    private static class FilterItem {
         private String mName;
+        private long mID;
         private List<FilterItem> mChildren = new ArrayList<>();
         private FilterItem mParent;
         private boolean mIsClear;
 
-        FilterItem(String name, FilterItem parent) {
-            this(name, parent, false);
+        FilterItem(String name, long id, FilterItem parent) {
+            this(name, id, parent, false);
         }
 
-        FilterItem(String name, FilterItem parent, boolean isClear) {
+        FilterItem(String name, long id, FilterItem parent, boolean isClear) {
             mName = name;
+            mID = id;
             mParent = parent;
             mIsClear = isClear;
         }
@@ -299,6 +301,10 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
         String getName() {
             return mName;
+        }
+
+        long getID() {
+            return mID;
         }
 
         FilterItem getParent() {

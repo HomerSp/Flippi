@@ -50,6 +50,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
     private int mCurrentPage = 0;
     private String mFilter;
+    private long mFilterCategory = 0;
     private String mSort;
     private boolean mIsCategory = false;
 
@@ -72,6 +73,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             mCurrentPage = savedInstanceState.getInt("current_page");
             mCategories.addAll(savedInstanceState.getParcelable("categories"));
             mFilter = savedInstanceState.getString("filter");
+            mFilterCategory = savedInstanceState.getLong("filter_category");
             mSort = savedInstanceState.getString("sort");
             mIsCategory = savedInstanceState.getBoolean("is_category");
         } else {
@@ -93,13 +95,8 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.setOnStarredListener(new PriceCheckAdapter.OnStarredListener() {
             @Override
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
-                try {
-                    item.setSaved(starred);
-                    new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Setting favourites error", e);
-                    return;
-                }
+                item.setSaved(starred);
+                new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
 
                 if(starred) {
                     if(mSnackbar != null) {
@@ -111,13 +108,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            try {
-                                item.setSaved(false);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo favourite error", e);
-                            }
+                        item.setSaved(false);
+                        mResultsAdapter.notifyItemChanged(item);
+                        new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -132,13 +125,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     mSnackbar.setAction(R.string.undo, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            try {
-                                item.setSaved(true);
-                                mResultsAdapter.notifyItemChanged(item);
-                                new PriceCheckDatabase.UpdateTask(SearchResultFragment.super.getPriceCheckDatabase(), item, 0).execute();
-                            } catch(IllegalStateException e) {
-                                Log.e(TAG, "Undo unfavourite error", e);
-                            }
+                            item.setSaved(true);
+                            mResultsAdapter.notifyItemChanged(item);
+                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
                     mSnackbar.show();
@@ -148,8 +137,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
         mResultsAdapter.setOnFilterListener(new PriceCheckAdapter.OnFilterListener() {
             @Override
-            public void onFilter(String filter) {
+            public void onFilter(String filter, long id) {
                 mFilter = filter;
+                mFilterCategory = id;
                 doSearch(mQuery, mIsBarcode);
             }
         });
@@ -177,18 +167,13 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            if(!mIsCategory) {
-                super.showSearchItem(true);
-                super.setToolbarScroll(true);
-                super.setActionBarTitle(getString(R.string.search_row_header_results));
-            }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getHelper().showClearFavorites(false);
+        if(!mIsCategory) {
+            getHelper().showSearchItem(true);
+            getHelper().showAppBarSearch(true, true, false);
+            getHelper().setActionBarTitle(getString(R.string.search_row_header_results));
         }
 
         mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
@@ -207,7 +192,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     int cy = getArguments().getInt("cy");
 
                     // get the hypothenuse so the radius is from one corner to the other
-                    int radius = (int) Math.hypot(right, bottom);
+                    int radius = (int) Math.hypot(cx, cy);
 
                     Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
                     reveal.setInterpolator(new DecelerateInterpolator(2f));
@@ -231,14 +216,10 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     return;
                 }
 
-                try {
-                    if (dy > 0) {
-                        SearchResultFragment.super.showFab(false);
-                    } else if (dy < 0) {
-                        SearchResultFragment.super.showFab(true);
-                    }
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Show fab error", e);
+                if (dy > 0) {
+                    getHelper().setFabIcon(0);
+                } else if (dy < 0) {
+                    getHelper().setFabIcon(R.drawable.ic_fab_camera);
                 }
             }
         });
@@ -246,11 +227,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.initView(mResultsView);
 
         if(mIsBarcode) {
-            try {
-                super.setSearchQuery(null);
-            } catch(IllegalStateException e) {
-                Log.e(TAG, "Setting search error", e);
-            }
+            getHelper().setSearchQuery(null);
         }
 
         if(savedInstanceState != null) {
@@ -278,36 +255,32 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                 layoutManager.getOrientation());
         mResultsView.addItemDecoration(dividerItemDecoration);
 
-        try {
-            if (!mHaveResults && mSort == null) {
-                if(mCategories.size() == 0) {
-                    new CategoryDatabase.GetAllTask(getCategoryDatabase(), "cex")
-                            .setResultListener(new CategoryDatabase.GetAllListener() {
-                                @Override
-                                public void onResult(PriceCheckCategories results) {
-                                    mCategories.addAll(results);
-                                    mResultsAdapter.setCategories(mCategories);
-                                    if(mQuery == null && mFilter == null) {
-                                        mResultsAdapter.setQuery(mQuery, mIsBarcode, mIsCategory);
-                                        mResultsAdapter.setHasCategory(false);
-                                        mResultsAdapter.setNoResults(true);
-                                        mResultsAdapter.setLoading(false);
-                                        return;
-                                    }
-
-                                    doSearch(mQuery, mIsBarcode);
+        if (!mHaveResults && mSort == null) {
+            if(mCategories.size() == 0) {
+                new CategoryDatabase.GetAllTask(getHelper().getCategoryDatabase(), "cex")
+                        .setResultListener(new CategoryDatabase.GetAllListener() {
+                            @Override
+                            public void onResult(PriceCheckCategories results) {
+                                mCategories.addAll(results);
+                                mResultsAdapter.setCategories(mCategories);
+                                if(mQuery == null && mFilter == null) {
+                                    mResultsAdapter.setQuery(null, mIsBarcode, mIsCategory);
+                                    mResultsAdapter.setHasCategory(false);
+                                    mResultsAdapter.setNoResults(true);
+                                    mResultsAdapter.setLoading(false);
+                                    return;
                                 }
-                            })
-                            .execute();
-                } else {
-                    doSearch(mQuery, mIsBarcode);
-                }
+
+                                doSearch(mQuery, mIsBarcode);
+                            }
+                        })
+                        .execute();
             } else {
-                mResultsAdapter.setLoading(false);
-                update();
+                doSearch(mQuery, mIsBarcode);
             }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
+        } else {
+            mResultsAdapter.setLoading(false);
+            update();
         }
 
         return mView;
@@ -326,7 +299,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         outState.putInt("current_page", mCurrentPage);
         outState.putParcelable("categories", mCategories);
         outState.putString("filter", mFilter);
-        outState.putString("sort", mSort);
+        outState.putLong("filter_category", mFilterCategory);
     }
 
     @Override
@@ -403,7 +376,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onResult(BarcodeProvider.BarcodeInformation result) {
                             if (result != null) {
                                 mQueryPending = result.getName();
-                                SearchResultFragment.super.setSearchQuery(mQueryPending);
+                                getHelper().setSearchQuery(mQueryPending);
                                 SearchResultFragment.this.doSearch(mQueryPending, false);
                             } else {
                                 update();
@@ -414,14 +387,10 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             }
         };
 
-        try {
-            if (page > 0) {
-                PriceCheckProvider.getInformation(context, mQuery, page, super.getPriceCheckDatabase(), mFilter, mSort, listener);
-            } else {
-                PriceCheckProvider.getInformation(context, mQuery, super.getPriceCheckDatabase(), mFilter, mSort, listener);
-            }
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Get price information error", e);
+        if (page > 0) {
+            PriceCheckProvider.getInformation(context, mQuery, page, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
+        } else {
+            PriceCheckProvider.getInformation(context, mQuery, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         }
     }
 

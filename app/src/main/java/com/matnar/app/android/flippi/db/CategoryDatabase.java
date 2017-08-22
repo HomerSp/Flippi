@@ -10,13 +10,15 @@ import com.matnar.app.android.flippi.pricecheck.PriceCheckCategories;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 public class CategoryDatabase extends SQLiteAssetHelper {
+    private static final String TAG = "Flippi." + CategoryDatabase.class.getSimpleName();
+
     private static final String DATABASE_NAME = "categories.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public CategoryDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
-        setForcedUpgrade();
+        setForcedUpgrade(Integer.MAX_VALUE);
     }
 
     private static PriceCheckCategories getAll(SQLiteDatabase db, String provider) {
@@ -30,7 +32,8 @@ public class CategoryDatabase extends SQLiteAssetHelper {
                 CategoryEntry._ID,
                 CategoryEntry.COLUMN_NAME_NAME,
                 CategoryEntry.COLUMN_NAME_PARENT,
-                CategoryEntry.COLUMN_NAME_PROVIDER
+                CategoryEntry.COLUMN_NAME_PROVIDER,
+                CategoryEntry.COLUMN_NAME_CATEGORYID
         };
 
         String sortOrder =
@@ -60,8 +63,9 @@ public class CategoryDatabase extends SQLiteAssetHelper {
                 long itemParent = cursor.getLong(cursor.getColumnIndexOrThrow(CategoryEntry.COLUMN_NAME_PARENT));
                 String itemName = cursor.getString(cursor.getColumnIndexOrThrow(CategoryEntry.COLUMN_NAME_NAME));
                 String itemProvider = cursor.getString(cursor.getColumnIndexOrThrow(CategoryEntry.COLUMN_NAME_PROVIDER));
+                long categoryID = cursor.getLong(cursor.getColumnIndexOrThrow(CategoryEntry.COLUMN_NAME_CATEGORYID));
 
-                PriceCheckCategories.PriceCheckCategory item = new PriceCheckCategories.PriceCheckCategory(itemId, itemName);
+                PriceCheckCategories.PriceCheckCategory item = new PriceCheckCategories.PriceCheckCategory(itemId, itemName, categoryID);
                 item.addChildren(getAll(db, provider, itemId));
 
                 ret.add(item);
@@ -114,5 +118,6 @@ public class CategoryDatabase extends SQLiteAssetHelper {
         static final String COLUMN_NAME_NAME = "name";
         static final String COLUMN_NAME_PARENT = "parent";
         static final String COLUMN_NAME_PROVIDER = "provider";
+        static final String COLUMN_NAME_CATEGORYID = "categoryID";
     }
 }

@@ -18,8 +18,8 @@
     <dimen name="search_row_header_height">48dp</dimen>
     <dimen name="search_row_footer_shadow_height">24dp</dimen>
 
-    <dimen name="search_row_image_width">88dp</dimen>
-    <dimen name="search_row_image_height">108dp</dimen>
+    <dimen name="search_row_image_width">78dp</dimen>
+    <dimen name="search_row_image_height">98dp</dimen>
     <dimen name="search_row_cashprice_icons_size">28dp</dimen>
 
     <dimen name="search_row_padding_vertical">20dp</dimen>

@@ -34,12 +34,12 @@ public class PriceCheckFilterSpinner extends AppCompatSpinner implements PriceCh
     }
 
     @Override
-    public void onItemClick(int pos, String name) {
+    public void onItemClick(int pos, String name, long id) {
         super.setSelection(pos);
         dismiss();
 
         if(mOnItemSelectedListener != null) {
-            mOnItemSelectedListener.onItemSelected(name);
+            mOnItemSelectedListener.onItemSelected(name, id);
         }
     }
 
@@ -75,7 +75,7 @@ public class PriceCheckFilterSpinner extends AppCompatSpinner implements PriceCh
     }
 
     public interface OnItemSelectedListener {
-        void onItemSelected(String name);
+        void onItemSelected(String name, long id);
         void onNothingSelected();
     }
 }

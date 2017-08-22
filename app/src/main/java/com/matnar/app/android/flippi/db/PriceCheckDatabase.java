@@ -54,6 +54,67 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
+    public static boolean exists(SQLiteDatabase db, PriceCheckProvider.PriceCheckItem item, int bundle) {
+        String[] projection = {
+                PriceEntry._ID
+        };
+
+        Cursor cursor;
+        if(bundle > 0) {
+            String selection = PriceEntry.COLUMN_NAME_BUNDLE + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_PROVIDER + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_REGION + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_SKU + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_NAME + " = ?";
+
+            String[] selectionArgs = {
+                    Integer.toString(bundle),
+                    item.getProvider(),
+                    PriceCheckRegion.toString(item.getRegion()),
+                    item.getSKU(),
+                    item.getName()
+            };
+
+            cursor = db.query(
+                    PriceEntry.TABLE_NAME,                     // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                 // The sort order
+            );
+        } else {
+            String selection = PriceEntry.COLUMN_NAME_PROVIDER + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_REGION + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_SKU + " = ?" +
+                    " AND " + PriceEntry.COLUMN_NAME_NAME + " = ?";
+
+            String[] selectionArgs = {
+                    item.getProvider(),
+                    PriceCheckRegion.toString(item.getRegion()),
+                    item.getSKU(),
+                    item.getName()
+            };
+
+            cursor = db.query(
+                    PriceEntry.TABLE_NAME,                     // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                 // The sort order
+            );
+        }
+
+        boolean ret = cursor != null && cursor.getCount() > 0;
+        if(cursor != null) {
+            cursor.close();
+        }
+        return ret;
+    }
+
     private static boolean clear(SQLiteDatabase db, int bundle) {
         String selection = PriceEntry.COLUMN_NAME_BUNDLE + " = ?";
         String[] selectionArgs = {
@@ -138,67 +199,6 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
         return ret;
     }
 
-    public static boolean exists(SQLiteDatabase db, PriceCheckProvider.PriceCheckItem item, int bundle) {
-        String[] projection = {
-                PriceEntry._ID
-        };
-
-        Cursor cursor;
-        if(bundle > 0) {
-            String selection = PriceEntry.COLUMN_NAME_BUNDLE + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_PROVIDER + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_REGION + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_SKU + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_NAME + " = ?";
-
-            String[] selectionArgs = {
-                    Integer.toString(bundle),
-                    item.getProvider(),
-                    PriceCheckRegion.toString(item.getRegion()),
-                    item.getSKU(),
-                    item.getName()
-            };
-
-            cursor = db.query(
-                    PriceEntry.TABLE_NAME,                     // The table to query
-                    projection,                               // The columns to return
-                    selection,                                // The columns for the WHERE clause
-                    selectionArgs,                            // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                 // The sort order
-            );
-        } else {
-            String selection = PriceEntry.COLUMN_NAME_PROVIDER + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_REGION + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_SKU + " = ?" +
-                    " AND " + PriceEntry.COLUMN_NAME_NAME + " = ?";
-
-            String[] selectionArgs = {
-                    item.getProvider(),
-                    PriceCheckRegion.toString(item.getRegion()),
-                    item.getSKU(),
-                    item.getName()
-            };
-
-            cursor = db.query(
-                    PriceEntry.TABLE_NAME,                     // The table to query
-                    projection,                               // The columns to return
-                    selection,                                // The columns for the WHERE clause
-                    selectionArgs,                            // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                 // The sort order
-            );
-        }
-
-        boolean ret = cursor != null && cursor.getCount() > 0;
-        if(cursor != null) {
-            cursor.close();
-        }
-        return ret;
-    }
-
     private static boolean insert(SQLiteDatabase db, PriceCheckProvider.PriceCheckItem item, int bundle) {
         ContentValues values = PriceEntry.getContentValues(item, bundle);
         return db.insert(PriceEntry.TABLE_NAME, null, values) >= 0;
@@ -255,6 +255,10 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
 
         @Override
         protected Boolean doInBackground(Void... args) {
+            if(mDB == null) {
+                return false;
+            }
+
             SQLiteDatabase db = mDB.getWritableDatabase();
             return PriceCheckDatabase.clear(db, mBundle);
         }
@@ -284,6 +288,10 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
 
         @Override
         protected PriceCheckProvider.PriceCheckItems doInBackground(Void... args) {
+            if(mDB == null) {
+                return new PriceCheckProvider.PriceCheckItems();
+            }
+
             SQLiteDatabase db = mDB.getWritableDatabase();
 
             PriceCheckProvider.PriceCheckItems items = new PriceCheckProvider.PriceCheckItems();
@@ -329,6 +337,10 @@ public class PriceCheckDatabase extends SQLiteOpenHelper {
 
         @Override
         protected Boolean doInBackground(Void... args) {
+            if(mDB == null) {
+                return false;
+            }
+
             SQLiteDatabase db = mDB.getWritableDatabase();
             if(mRemove) {
                 for(PriceCheckProvider.PriceCheckItem item: mItems) {

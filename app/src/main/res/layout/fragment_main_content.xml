@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main_fragment_background"
+    android:paddingBottom="?attr/actionBarSize"
     android:fitsSystemWindows="true"
     tools:context=".fragment.main.MainContentFragment">
 
@@ -68,21 +69,25 @@
                 android:layout_marginLeft="@dimen/activity_horizontal_margin"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:focusableInTouchMode="true"
+                android:descendantFocusability="beforeDescendants"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:focusableInTouchMode="true">
 
-                <android.support.v7.widget.AppCompatEditText
+                <com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView
                     android:id="@+id/search_text"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:maxLines="1"
-                    android:inputType="textAutoComplete"
                     android:hint="@string/search_hint"
                     android:textColorHint="@color/search_text_hint_color"
                     android:textColor="@android:color/background_light"
+                    android:inputType="text"
                     android:imeOptions="actionSearch"
+                    android:completionThreshold="1"
+                    android:focusable="false"
                     app:backgroundTint="@android:color/background_light"/>
 
                 <ImageView

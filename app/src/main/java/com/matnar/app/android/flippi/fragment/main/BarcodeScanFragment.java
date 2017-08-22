@@ -48,17 +48,12 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_torch_off);
-            super.showClearFavorites(false);
-            super.showSearchItem(true);
-            super.setToolbarScroll(false);
-            super.setActionBarTitle(getString(R.string.app_name));
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
+        getHelper().showClearFavorites(false);
+        getHelper().showSearchItem(true);
+        getHelper().setActionBarTitle(getString(R.string.app_name));
+
 
         View rootView = inflater.inflate(R.layout.fragment_main_barcode_scanner, container, false);
         mView = (DecoratedBarcodeView)rootView.findViewById(R.id.barcode_scanner_view);
@@ -88,7 +83,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
                     v.removeOnLayoutChangeListener(this);
                     int cx = getArguments().getInt("cx");
                     int cy = getArguments().getInt("cy");
-                    int radius = (int) Math.hypot(right, bottom);
+                    int radius = (int) Math.hypot(cx, cy);
 
                     Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
                     reveal.setInterpolator(new DecelerateInterpolator(2f));
@@ -148,11 +143,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     public void barcodeResult(BarcodeResult result) {
         mView.pauseAndWait();
 
-        try {
-            super.doSearch(result.getText(), true);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Barcode result error", e);
-        }
+        getHelper().doSearch(result.getText(), true);
     }
 
     @Override
@@ -171,19 +162,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
 
     @Override
     public void onTorchOn() {
-        try {
-            super.setFabIcon(R.drawable.ic_fab_torch_on);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Set fab icon error", e);
-        }
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_on);
     }
 
     @Override
     public void onTorchOff() {
-        try {
-            super.setFabIcon(R.drawable.ic_fab_torch_off);
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Set fab icon error", e);
-        }
+        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
     }
 }

@@ -1,5 +1,7 @@
 package com.matnar.app.android.flippi.view.adapter;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -33,6 +35,7 @@ import com.squareup.picasso.Picasso;
 public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "Flippi." + PriceCheckAdapter.class.getSimpleName();
 
+    // ViewHolder types
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
     private static final int TYPE_FOOTER = 2;
@@ -99,16 +102,16 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 mSpinner.setAdapter(mCategoriesAdapter);
                 mSpinner.setOnItemSelectedListener(new PriceCheckFilterSpinner.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(String name) {
+                    public void onItemSelected(String name, long id) {
                         if(mOnFilterListener != null) {
-                            mOnFilterListener.onFilter(name);
+                            mOnFilterListener.onFilter(name, id);
                         }
                     }
 
                     @Override
                     public void onNothingSelected() {
                         if(mOnFilterListener != null) {
-                            mOnFilterListener.onFilter(null);
+                            mOnFilterListener.onFilter(null, 0);
                         }
                     }
                 });
@@ -214,6 +217,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             super(itemView);
 
             mView = (FrameLayout) itemView;
+            mView.setTag(0);
             mIsSavedList = isSavedList;
 
             mTitleView = (TextView) itemView.findViewById(R.id.search_row_title);
@@ -234,12 +238,28 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 int colorFrom = ((ColorDrawable) mView.getForeground()).getColor();
                 int colorTo = ContextCompat.getColor(mView.getContext(), (info.isSaved()) ? android.R.color.transparent : R.color.search_row_background_disabled);
 
+                if((Integer) mView.getTag() != 0) {
+                    mView.setTag(0);
+                }
+
                 ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-                colorAnimation.setDuration(mShortAnimationDuration); // milliseconds
+                colorAnimation.setDuration(mShortAnimationDuration);
+                colorAnimation.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        mView.setTag(1);
+                    }
+                });
                 colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
                     @Override
                     public void onAnimationUpdate(ValueAnimator animator) {
+                        if((Integer) mView.getTag() != 1) {
+                            mView.setTag(0);
+                            animator.cancel();
+                            return;
+                        }
+
                         mView.setForeground(new ColorDrawable((Integer) animator.getAnimatedValue()));
                     }
 
@@ -256,12 +276,12 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             mVoucherPriceView.setText(PriceCheckRegion.getPrice(region, info.getBuyVoucherPrice()));
 
             mStarView.setTag(info.isSaved());
+            mStarView.setOnClickListener(this);
             TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
             star.resetTransition();
             if(info.isSaved()) {
                 star.startTransition(1);
             }
-            mStarView.setOnClickListener(this);
 
             Picasso.with(context).load(info.getImage()).into(mImageView);
         }
@@ -271,12 +291,14 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             if(view.equals(mStarView)) {
                 boolean starred = !(Boolean) mStarView.getTag();
                 mStarView.setTag(starred);
+
                 TransitionDrawable star = (TransitionDrawable) mStarView.getDrawable();
                 if(starred) {
                     star.startTransition(mShortAnimationDuration);
                 } else {
                     star.reverseTransition(mShortAnimationDuration);
                 }
+
                 if(mOnStarredListener != null) {
                     mOnStarredListener.onStarred(mInfo, starred);
                 }
@@ -602,7 +624,7 @@ public class PriceCheckAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public interface OnFilterListener {
-        void onFilter(String filter);
+        void onFilter(String filter, long id);
     }
 
     public interface OnRetryListener {

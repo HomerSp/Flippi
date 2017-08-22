@@ -4,9 +4,10 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -18,12 +19,14 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.matnar.app.android.flippi.R;
 import com.matnar.app.android.flippi.activity.MainActivity;
+import com.matnar.app.android.flippi.view.adapter.SavedSearchesAdapter;
 
 public class MainContentFragment extends MainActivity.MainActivityFragment {
     private static final String TAG = "Flippi." + MainContentFragment.class.getSimpleName();
 
     private View mView;
-    private TextView mSearchView;
+    private AppCompatAutoCompleteTextView mSearchView;
+
     private AdView mAdView;
 
     private String mQuery;
@@ -44,17 +47,12 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        try {
-            super.setFooter(0);
-            super.setFabIcon(R.drawable.ic_fab_camera);
-            super.showClearFavorites(false);
-            super.showSearchItem(false);
-            super.setToolbarScroll(true);
-            super.setActionBarTitle(getString(R.string.app_name));
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Create view error", e);
-            return null;
-        }
+        getHelper().setFooter(0);
+        getHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getHelper().showClearFavorites(false);
+        getHelper().showSearchItem(false);
+        getHelper().setActionBarTitle(getString(R.string.app_name));
+        getHelper().resetActionBar();
 
         mView = inflater.inflate(R.layout.fragment_main_content, container, false);
 
@@ -63,11 +61,22 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
         appnameview.setTypeface(typeface);
 
         final ImageView searchButton = (ImageView) mView.findViewById(R.id.search_button);
-        mSearchView = (TextView) mView.findViewById(R.id.search_text);
+        mSearchView = (AppCompatAutoCompleteTextView) mView.findViewById(R.id.search_text);
+
+        final SavedSearchesAdapter searchesAdapter = getHelper().getSearchAdapter();
+        mSearchView.setAdapter(searchesAdapter);
 
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String s = mSearchView.getText().toString();
+                if(s.isEmpty()) {
+                    return;
+                }
+
+                searchesAdapter.add(s);
+                searchesAdapter.notifyDataSetChanged();
+
                 Rect rect = new Rect();
                 view.getGlobalVisibleRect(rect);
                 int cx  = rect.left + (view.getWidth() / 2);
@@ -77,17 +86,21 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
                 final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
 
-                try {
-                    MainContentFragment.super.setSearchQuery(mSearchView.getText().toString());
-                    MainContentFragment.super.doSearch(mSearchView.getText().toString(), false, cx, cy);
-                } catch(IllegalStateException e) {
-                    Log.e(TAG, "Search button click error", e);
-                }
+                getHelper().setSearchQuery(s);
+                getHelper().doSearch(s, false, cx, cy);
             }
         });
 
         mSearchView.setText(mQuery);
 
+        mSearchView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                view.setFocusable(true);
+                view.setFocusableInTouchMode(true);
+                return false;
+            }
+        });
         mSearchView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -101,23 +114,19 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
 
         mAdView = (AdView) mView.findViewById(R.id.adView);
 
-        try {
-            addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
-                @Override
-                public void onLicenseCheck(boolean result) {
-                    if (!result) {
-                        AdRequest adRequest = new AdRequest.Builder()
-                                .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
-                                .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
-                                .addTestDevice("1B2DE92FE5DB3D15399D371932542B92")
-                                .build();
-                        mAdView.loadAd(adRequest);
-                    }
+        getHelper().addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
+            @Override
+            public void onLicenseCheck(boolean result) {
+                if (!result) {
+                    AdRequest adRequest = new AdRequest.Builder()
+                            .addTestDevice("3C441A6A7C61691FFC3105E9E09B4122")
+                            .addTestDevice("BE14CD0E5EDE94F247ED0588622D2B8E")
+                            .addTestDevice("1B2DE92FE5DB3D15399D371932542B92")
+                            .build();
+                    mAdView.loadAd(adRequest);
                 }
-            });
-        } catch(IllegalStateException e) {
-            Log.e(TAG, "Could not set listener", e);
-        }
+            }
+        });
 
         return mView;
     }

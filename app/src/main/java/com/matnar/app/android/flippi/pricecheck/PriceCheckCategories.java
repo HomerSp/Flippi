@@ -53,11 +53,13 @@ public class PriceCheckCategories extends ArrayList<PriceCheckCategories.PriceCh
     public static class PriceCheckCategory implements Parcelable {
         private long mID;
         private String mName;
+        private long mCategoryID;
         private PriceCheckCategories mChildren = new PriceCheckCategories();
 
-        public PriceCheckCategory(long id, String name) {
+        public PriceCheckCategory(long id, String name, long categoryID) {
             mID = id;
             mName = name;
+            mCategoryID = categoryID;
         }
 
         @Override
@@ -69,6 +71,7 @@ public class PriceCheckCategories extends ArrayList<PriceCheckCategories.PriceCh
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeLong(mID);
             dest.writeString(mName);
+            dest.writeLong(mCategoryID);
             dest.writeInt(mChildren.size());
             for(PriceCheckCategory item: mChildren) {
                 item.writeToParcel(dest, flags);
@@ -87,6 +90,10 @@ public class PriceCheckCategories extends ArrayList<PriceCheckCategories.PriceCh
             return mName;
         }
 
+        public long getCategoryID() {
+            return mCategoryID;
+        }
+
         public PriceCheckCategories getChildren() {
             return mChildren;
         }
@@ -94,6 +101,7 @@ public class PriceCheckCategories extends ArrayList<PriceCheckCategories.PriceCh
         PriceCheckCategory(Parcel in) {
             mID = in.readLong();
             mName = in.readString();
+            mCategoryID = in.readLong();
             int size = in.readInt();
             for(int i = 0; i < size; i++) {
                 mChildren.add(new PriceCheckCategory(in));

@@ -19,15 +19,15 @@ import java.util.Date;
 public abstract class PriceCheckProvider {
     private static final String TAG = "Flippi." + PriceCheckProvider.class.getSimpleName();
 
-    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
-        getInformation(context, query, 0, database, filter, sort, listener);
+    public static void getInformation(WeakReference<Context> context, String query, PriceCheckDatabase database, String filter, long filterCategory, String sort, PriceCheckListener listener) {
+        getInformation(context, query, 0, database, filter, filterCategory, sort, listener);
     }
 
-    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
-        new PriceCheckTask(context, page, database, filter, sort, listener).execute(query);
+    public static void getInformation(WeakReference<Context> context, String query, int page, PriceCheckDatabase database, String filter, long filterCategory, String sort, PriceCheckListener listener) {
+        new PriceCheckTask(context, page, database, filter, filterCategory, sort, listener).execute(query);
     }
 
-    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, String sort);
+    protected abstract PriceCheckItems lookup(String name, int page, PriceCheckDatabase database, String filter, long filterCategory, String sort);
 
     public interface PriceCheckListener {
         void onResult(PriceCheckItems result);
@@ -302,15 +302,17 @@ public abstract class PriceCheckProvider {
         private int mPage = 0;
         private PriceCheckDatabase mDatabase;
         private String mFilter;
+        private long mFilterCategory;
         private String mSort;
         private PriceCheckListener mListener;
         private PriceCheckRegion.Region mRegion;
 
-        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, String filter, String sort, PriceCheckListener listener) {
+        PriceCheckTask(WeakReference<Context> context, int page, PriceCheckDatabase database, String filter, long filterCategory, String sort, PriceCheckListener listener) {
             mContext = context;
             mPage = page;
             mDatabase = database;
             mFilter = filter;
+            mFilterCategory = filterCategory;
             mSort = sort;
             mListener = listener;
             mRegion = PriceCheckRegion.getCurrent(context.get());
@@ -319,12 +321,12 @@ public abstract class PriceCheckProvider {
 
         @Override
         protected PriceCheckItems doInBackground(String... query) {
-            if(query.length == 0) {
+            if(query.length == 0 || mDatabase == null) {
                 return null;
             }
 
             PriceCheckProvider provider = new CeXPriceCheckProvider(mContext, mRegion);
-            return provider.lookup(query[0], mPage, mDatabase, mFilter, mSort);
+            return provider.lookup(query[0], mPage, mDatabase, mFilter, mFilterCategory, mSort);
         }
 
         @Override
