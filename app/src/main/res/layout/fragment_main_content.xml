@@ -72,7 +72,8 @@
                 android:focusableInTouchMode="true"
                 android:descendantFocusability="beforeDescendants"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:focusableInTouchMode="true">
 
                 <com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView
                     android:id="@+id/search_text"
