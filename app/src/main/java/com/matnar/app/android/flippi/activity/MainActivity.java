@@ -758,10 +758,14 @@ public class MainActivity extends AppCompatActivity
                             int cy = (int) mActivity.mAppBarSearchGoButtonView.getY() + (mActivity.mAppBarSearchGoButtonView.getHeight() / 2);
                             float radius = (float) Math.hypot(cx, cy);
 
-                            Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, 0, radius);
-                            anim.addListener(listener);
-                            anim.setDuration(mActivity.mMediumAnimationDuration);
-                            anim.start();
+                            try {
+                                Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, 0, radius);
+                                anim.addListener(listener);
+                                anim.setDuration(mActivity.mMediumAnimationDuration);
+                                anim.start();
+                            } catch(IllegalStateException e) {
+                                mActivity.mAppBarSearchContainer.setVisibility(View.VISIBLE);
+                            }
                         } else {
                             mActivity.mAppBarSearchContainer.animate()
                                     .alpha(1.0f)
@@ -772,32 +776,41 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
             } else if (!show && mActivity.mAppBarSearchContainer.getVisibility() != View.GONE) {
-                AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
+                mActivity.mAppBarSearchContainer.post(new Runnable() {
                     @Override
-                    public void onAnimationEnd(Animator animation) {
-                        mActivity.mAppBarSearchContainer.setVisibility(View.GONE);
-                        mActivity.mAppBarSearchTextView.setText("");
+                    public void run() {
+                        AnimatorListenerAdapter listener = new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                mActivity.mAppBarSearchContainer.setVisibility(View.GONE);
+                                mActivity.mAppBarSearchTextView.setText("");
+                            }
+                        };
+
+                        mActivity.mAppBarSearchContainer.animate().cancel();
+
+                        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            int cx = (int) mActivity.mAppBarSearchGoButtonView.getX() + (mActivity.mAppBarSearchGoButtonView.getWidth() / 2);
+                            int cy = (int) mActivity.mAppBarSearchGoButtonView.getY() + (mActivity.mAppBarSearchGoButtonView.getHeight() / 2);
+                            float radius = (float) Math.hypot(cx, cy);
+
+                            try {
+                                Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, radius, 0);
+                                anim.addListener(listener);
+                                anim.setDuration(mActivity.mMediumAnimationDuration);
+                                anim.start();
+                            } catch(IllegalStateException e) {
+                                mActivity.mAppBarSearchContainer.setVisibility(View.GONE);
+                            }
+                        } else {
+                            mActivity.mAppBarSearchContainer.animate()
+                                    .alpha(0.0f)
+                                    .setListener(listener)
+                                    .setDuration(mActivity.mMediumAnimationDuration)
+                                    .start();
+                        }
                     }
-                };
-
-                mActivity.mAppBarSearchContainer.animate().cancel();
-
-                if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    int cx = (int) mActivity.mAppBarSearchGoButtonView.getX() + (mActivity.mAppBarSearchGoButtonView.getWidth() / 2);
-                    int cy = (int) mActivity.mAppBarSearchGoButtonView.getY() + (mActivity.mAppBarSearchGoButtonView.getHeight() / 2);
-                    float radius = (float) Math.hypot(cx, cy);
-
-                    Animator anim = ViewAnimationUtils.createCircularReveal(mActivity.mAppBarSearchContainer, cx, cy, radius, 0);
-                    anim.addListener(listener);
-                    anim.setDuration(mActivity.mMediumAnimationDuration);
-                    anim.start();
-                } else {
-                    mActivity.mAppBarSearchContainer.animate()
-                            .alpha(0.0f)
-                            .setListener(listener)
-                            .setDuration(mActivity.mMediumAnimationDuration)
-                            .start();
-                }
+                });
             }
         }
     }

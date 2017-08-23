@@ -85,10 +85,14 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
                     int cy = getArguments().getInt("cy");
                     int radius = (int) Math.hypot(cx, cy);
 
-                    Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
-                    reveal.setInterpolator(new DecelerateInterpolator(2f));
-                    reveal.setDuration(mRevealAnimationDuration);
-                    reveal.start();
+                    try {
+                        Animator reveal = ViewAnimationUtils.createCircularReveal(v, cx, cy, 0, radius);
+                        reveal.setInterpolator(new DecelerateInterpolator(2f));
+                        reveal.setDuration(mRevealAnimationDuration);
+                        reveal.start();
+                    } catch(IllegalStateException e) {
+                        v.setVisibility(View.VISIBLE);
+                    }
                 }
             });
         }
