@@ -883,7 +883,7 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        protected MainActivityHelper getHelper() {
+        protected MainActivityHelper getMainHelper() {
             if(mHelper == null) {
                 return new MainActivityHelper(null);
             }

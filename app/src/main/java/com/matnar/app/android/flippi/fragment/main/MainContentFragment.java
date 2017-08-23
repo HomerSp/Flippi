@@ -47,12 +47,12 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getHelper().setFooter(0);
-        getHelper().setFabIcon(R.drawable.ic_fab_camera);
-        getHelper().showClearFavorites(false);
-        getHelper().showSearchItem(false);
-        getHelper().setActionBarTitle(getString(R.string.app_name));
-        getHelper().resetActionBar();
+        getMainHelper().setFooter(0);
+        getMainHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getMainHelper().showClearFavorites(false);
+        getMainHelper().showSearchItem(false);
+        getMainHelper().setActionBarTitle(getString(R.string.app_name));
+        getMainHelper().resetActionBar();
 
         mView = inflater.inflate(R.layout.fragment_main_content, container, false);
 
@@ -63,7 +63,7 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
         final ImageView searchButton = (ImageView) mView.findViewById(R.id.search_button);
         mSearchView = (AppCompatAutoCompleteTextView) mView.findViewById(R.id.search_text);
 
-        final SavedSearchesAdapter searchesAdapter = getHelper().getSearchAdapter();
+        final SavedSearchesAdapter searchesAdapter = getMainHelper().getSearchAdapter();
         mSearchView.setAdapter(searchesAdapter);
 
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -86,8 +86,8 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
                 final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(mSearchView.getWindowToken(), 0);
 
-                getHelper().setSearchQuery(s);
-                getHelper().doSearch(s, false, cx, cy);
+                getMainHelper().setSearchQuery(s);
+                getMainHelper().doSearch(s, false, cx, cy);
             }
         });
 
@@ -114,7 +114,7 @@ public class MainContentFragment extends MainActivity.MainActivityFragment {
 
         mAdView = (AdView) mView.findViewById(R.id.adView);
 
-        getHelper().addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
+        getMainHelper().addOnLicenseCheckListener(new MainActivity.OnLicenseCheckListener() {
             @Override
             public void onLicenseCheck(boolean result) {
                 if (!result) {

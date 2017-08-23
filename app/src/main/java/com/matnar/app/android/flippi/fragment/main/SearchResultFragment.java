@@ -7,7 +7,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -96,7 +95,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
             @Override
             public void onStarred(final PriceCheckProvider.PriceCheckItem item, final boolean starred) {
                 item.setSaved(starred);
-                new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
+                new PriceCheckDatabase.UpdateTask(getMainHelper().getPriceCheckDatabase(), item, 0).execute();
 
                 if(starred) {
                     if(mSnackbar != null) {
@@ -110,7 +109,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                         item.setSaved(false);
                         mResultsAdapter.notifyItemChanged(item);
-                        new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
+                        new PriceCheckDatabase.UpdateTask(getMainHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
 
@@ -127,7 +126,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onClick(View view) {
                             item.setSaved(true);
                             mResultsAdapter.notifyItemChanged(item);
-                            new PriceCheckDatabase.UpdateTask(getHelper().getPriceCheckDatabase(), item, 0).execute();
+                            new PriceCheckDatabase.UpdateTask(getMainHelper().getPriceCheckDatabase(), item, 0).execute();
                         }
                     });
                     mSnackbar.show();
@@ -167,13 +166,13 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getHelper().setFooter(0);
-        getHelper().setFabIcon(R.drawable.ic_fab_camera);
-        getHelper().showClearFavorites(false);
+        getMainHelper().setFooter(0);
+        getMainHelper().setFabIcon(R.drawable.ic_fab_camera);
+        getMainHelper().showClearFavorites(false);
         if(!mIsCategory) {
-            getHelper().showSearchItem(true);
-            getHelper().showAppBarSearch(true, true, false);
-            getHelper().setActionBarTitle(getString(R.string.search_row_header_results));
+            getMainHelper().showSearchItem(true);
+            getMainHelper().showAppBarSearch(true, true, false);
+            getMainHelper().setActionBarTitle(getString(R.string.search_row_header_results));
         }
 
         mView = inflater.inflate(R.layout.fragment_main_search_result, container, false);
@@ -221,9 +220,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                 }
 
                 if (dy > 0) {
-                    getHelper().setFabIcon(0);
+                    getMainHelper().setFabIcon(0);
                 } else if (dy < 0) {
-                    getHelper().setFabIcon(R.drawable.ic_fab_camera);
+                    getMainHelper().setFabIcon(R.drawable.ic_fab_camera);
                 }
             }
         });
@@ -231,7 +230,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         mResultsAdapter.initView(mResultsView);
 
         if(mIsBarcode) {
-            getHelper().setSearchQuery(null);
+            getMainHelper().setSearchQuery(null);
         }
 
         if(savedInstanceState != null) {
@@ -261,7 +260,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
 
         if (!mHaveResults && mSort == null) {
             if(mCategories.size() == 0) {
-                new CategoryDatabase.GetAllTask(getHelper().getCategoryDatabase(), "cex")
+                new CategoryDatabase.GetAllTask(getMainHelper().getCategoryDatabase(), "cex")
                         .setResultListener(new CategoryDatabase.GetAllListener() {
                             @Override
                             public void onResult(PriceCheckCategories results) {
@@ -381,7 +380,7 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                         public void onResult(BarcodeProvider.BarcodeInformation result) {
                             if (result != null) {
                                 mQueryPending = result.getName();
-                                getHelper().setSearchQuery(mQueryPending);
+                                getMainHelper().setSearchQuery(mQueryPending);
                                 SearchResultFragment.this.doSearch(mQueryPending, false);
                             } else {
                                 update();
@@ -393,9 +392,9 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
         };
 
         if (page > 0) {
-            PriceCheckProvider.getInformation(context, mQuery, page, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, page, getMainHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         } else {
-            PriceCheckProvider.getInformation(context, mQuery, getHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
+            PriceCheckProvider.getInformation(context, mQuery, getMainHelper().getPriceCheckDatabase(), mFilter, mFilterCategory, mSort, listener);
         }
     }
 

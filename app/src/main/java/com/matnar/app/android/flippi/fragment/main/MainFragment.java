@@ -83,15 +83,15 @@ public class MainFragment extends MainActivity.MainActivityFragment implements V
     public void onPageSelected(int position) {
         switch (position) {
             case 0:
-                getHelper().showSearchItem(false);
-                getHelper().showAppBarSearch(false);
-                getHelper().setActionBarTitle(getString(R.string.app_name));
-                getHelper().resetActionBar();
+                getMainHelper().showSearchItem(false);
+                getMainHelper().showAppBarSearch(false);
+                getMainHelper().setActionBarTitle(getString(R.string.app_name));
+                getMainHelper().resetActionBar();
 
                 break;
             case 1:
-                getHelper().showSearchItem(true);
-                getHelper().setActionBarTitle(getString(R.string.search_row_filter_no));
+                getMainHelper().showSearchItem(true);
+                getMainHelper().setActionBarTitle(getString(R.string.search_row_filter_no));
 
                 break;
         }
