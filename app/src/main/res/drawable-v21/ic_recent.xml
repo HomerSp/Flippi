@@ -2,5 +2,5 @@
 <bitmap
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:src="@drawable/ic_arrow_back_white"
-    android:tint="#8a000000"/>
+    android:src="@drawable/ic_recent_white"
+    android:tint="?android:textColorTertiary"/>

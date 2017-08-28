@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/AppTheme.AppBarOverlay">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -52,9 +52,10 @@
                             android:clickable="true"
                             android:focusable="true"
                             android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:background="@android:color/background_light"
                             android:padding="8.0dp"
                             android:src="@drawable/ic_arrow_left_white"
-                            android:tint="@android:color/tertiary_text_dark" />
+                            android:tint="?android:attr/textColorTertiary" />
 
                         <com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView
                             android:id="@+id/search_query"
@@ -63,16 +64,17 @@
                             android:layout_gravity="center_vertical"
                             android:layout_weight="1"
                             android:hint="@string/search_hint"
-                            android:textColorHint="@android:color/secondary_text_dark"
+                            android:textColorHint="?android:attr/textColorHintInverse"
                             android:maxLines="1"
                             android:inputType="text"
                             android:imeOptions="actionSearch"
                             android:completionThreshold="1"
                             android:padding="8.0dp"
                             android:gravity="center_vertical"
-                            android:textColor="@android:color/tertiary_text_dark"
+                            android:textColor="?android:textColorTertiary"
                             android:textCursorDrawable="@null"
                             android:textSize="@dimen/search_row_sellprice"
+                            android:background="@android:color/background_light"
                             app:backgroundTint="@android:color/transparent" />
 
                         <ImageView
@@ -81,9 +83,11 @@
                             android:layout_height="match_parent"
                             android:padding="8.0dp"
                             android:src="@drawable/ic_search"
-                            android:tint="@android:color/tertiary_text_dark"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:clickable="true"/>
+                            android:tint="?android:attr/textColorTertiary"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:background="@android:color/background_light"
+                            android:clickable="true"
+                            android:focusable="true"/>
 
                     </LinearLayout>
 
