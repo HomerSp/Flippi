@@ -315,9 +315,13 @@ public class MainActivity extends AppCompatActivity
 
         mPriceCheckDatabase.close();
 
-        if (mBillingHelper != null) {
-            mBillingHelper.dispose();
-            mBillingHelper = null;
+        try {
+            if (mBillingHelper != null) {
+                mBillingHelper.dispose();
+                mBillingHelper = null;
+            }
+        } catch(IllegalArgumentException e) {
+            // Empty
         }
     }
 
