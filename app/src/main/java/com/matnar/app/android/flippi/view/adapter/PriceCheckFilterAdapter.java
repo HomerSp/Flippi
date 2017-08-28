@@ -107,11 +107,17 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int pos) {
-        if(mCurrent == null) {
-            return mItems.get(pos);
+        try {
+            if (mCurrent == null) {
+                return mItems.get(pos);
+            }
+
+            return (pos > 0) ? mCurrent.getChild(pos - 1) : mCurrent;
+        } catch(IndexOutOfBoundsException e) {
+            Log.e(TAG, "getItem " + pos, e);
         }
 
-        return (pos > 0) ? mCurrent.getChild(pos - 1) : mCurrent;
+        return new Object();
     }
 
     @Override
