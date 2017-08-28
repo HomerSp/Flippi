@@ -14,6 +14,10 @@ public class PriceCheckRegion {
     }
 
     static Region getCurrent(Context context) {
+        if(context == null) {
+            return Region.RegionUnknown;
+        }
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         String region = prefs.getString("region", "uk");
