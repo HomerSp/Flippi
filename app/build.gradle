@@ -7,8 +7,8 @@ android {
         applicationId "com.matnar.app.android.flippi"
         minSdkVersion 15
         targetSdkVersion 25
-        versionCode 14
-        versionName "1.2.0"
+        versionCode 17
+        versionName "1.2.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -27,6 +27,7 @@ android {
 
 repositories {
     jcenter()
+    mavenLocal()
 }
 
 dependencies {
@@ -44,7 +45,6 @@ dependencies {
     compile 'com.android.support:preference-v7:25.3.1'
     compile 'com.android.support:preference-v14:25.3.1'
 
-    compile 'com.journeyapps:zxing-android-embedded:3.5.0'
     compile 'org.jsoup:jsoup:1.10.3'
 
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
@@ -55,6 +55,8 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:2.0.1'
+
+    compile 'com.journeyapps:zxing-android-embedded:3.5.1'
 
     testCompile 'junit:junit:4.12'
     compile project(path: ':LicensingVerificationLibrary')

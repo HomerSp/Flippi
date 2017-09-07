@@ -82,12 +82,12 @@
                     android:maxLines="1"
                     android:hint="@string/search_hint"
                     android:textColorHint="@color/search_text_hint_color"
-                    android:textColor="@android:color/background_light"
+                    android:textColor="?android:textColorPrimaryInverse"
                     android:inputType="text"
                     android:imeOptions="actionSearch"
                     android:completionThreshold="1"
                     android:focusable="false"
-                    app:backgroundTint="@android:color/background_light"/>
+                    app:backgroundTint="?android:textColorPrimaryInverse"/>
 
                 <ImageView
                     android:id="@+id/search_button"
@@ -108,7 +108,7 @@
                 android:layout_marginBottom="@dimen/main_fragment_vertical_margin"
                 android:gravity="center"
                 android:text="@string/main_fragment_fastestway"
-                android:textColor="@android:color/background_light"/>
+                android:textColor="?android:textColorPrimaryInverse"/>
 
         </LinearLayout>
     </ScrollView>

@@ -315,9 +315,13 @@ public class MainActivity extends AppCompatActivity
 
         mPriceCheckDatabase.close();
 
-        if (mBillingHelper != null) {
-            mBillingHelper.dispose();
-            mBillingHelper = null;
+        try {
+            if (mBillingHelper != null) {
+                mBillingHelper.dispose();
+                mBillingHelper = null;
+            }
+        } catch(IllegalArgumentException e) {
+            // Empty
         }
     }
 
@@ -883,7 +887,7 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        protected MainActivityHelper getHelper() {
+        protected MainActivityHelper getMainHelper() {
             if(mHelper == null) {
                 return new MainActivityHelper(null);
             }

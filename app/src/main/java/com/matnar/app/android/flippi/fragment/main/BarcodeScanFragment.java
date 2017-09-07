@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -48,11 +47,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getHelper().setFooter(0);
-        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
-        getHelper().showClearFavorites(false);
-        getHelper().showSearchItem(true);
-        getHelper().setActionBarTitle(getString(R.string.app_name));
+        getMainHelper().setFooter(0);
+        getMainHelper().setFabIcon(R.drawable.ic_fab_torch_off);
+        getMainHelper().showClearFavorites(false);
+        getMainHelper().showSearchItem(true);
+        getMainHelper().setActionBarTitle(getString(R.string.app_name));
 
 
         View rootView = inflater.inflate(R.layout.fragment_main_barcode_scanner, container, false);
@@ -147,7 +146,7 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
     public void barcodeResult(BarcodeResult result) {
         mView.pauseAndWait();
 
-        getHelper().doSearch(result.getText(), true);
+        getMainHelper().doSearch(result.getText(), true);
     }
 
     @Override
@@ -166,11 +165,11 @@ public class BarcodeScanFragment extends MainActivity.MainActivityFragment imple
 
     @Override
     public void onTorchOn() {
-        getHelper().setFabIcon(R.drawable.ic_fab_torch_on);
+        getMainHelper().setFabIcon(R.drawable.ic_fab_torch_on);
     }
 
     @Override
     public void onTorchOff() {
-        getHelper().setFabIcon(R.drawable.ic_fab_torch_off);
+        getMainHelper().setFabIcon(R.drawable.ic_fab_torch_off);
     }
 }

@@ -107,16 +107,23 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int pos) {
-        if(mCurrent == null) {
-            return mItems.get(pos);
+        try {
+            if (mCurrent == null) {
+                return mItems.get(pos);
+            }
+
+            return (pos > 0) ? mCurrent.getChild(pos - 1) : mCurrent;
+        } catch(IndexOutOfBoundsException e) {
+            Log.e(TAG, "getItem " + pos, e);
         }
 
-        return (pos > 0) ? mCurrent.getChild(pos - 1) : mCurrent;
+        return null;
     }
 
     @Override
     public long getItemId(int pos) {
-        return getItem(pos).hashCode();
+        Object o = getItem(pos);
+        return (o == null) ? 0 : o.hashCode();
     }
 
     @Override
@@ -149,6 +156,9 @@ public class PriceCheckFilterAdapter extends BaseAdapter {
         }
 
         FilterItem item = (FilterItem) getItem(pos);
+        if(item == null) {
+            return view;
+        }
 
         FilterItemRowViewHolder vh = (FilterItemRowViewHolder) view.getTag();
         vh.setPosition(pos);
