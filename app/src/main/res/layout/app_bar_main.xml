@@ -55,7 +55,7 @@
                             android:background="@android:color/background_light"
                             android:padding="8.0dp"
                             android:src="@drawable/ic_arrow_left_white"
-                            android:tint="?android:attr/textColorTertiary" />
+                            android:tint="?android:attr/textColorTertiaryInverse" />
 
                         <com.matnar.app.android.flippi.view.widget.AutoCompleteFocusTextView
                             android:id="@+id/search_query"
@@ -71,7 +71,7 @@
                             android:completionThreshold="1"
                             android:padding="8.0dp"
                             android:gravity="center_vertical"
-                            android:textColor="?android:textColorTertiary"
+                            android:textColor="?android:textColorTertiaryInverse"
                             android:textCursorDrawable="@null"
                             android:textSize="@dimen/search_row_sellprice"
                             android:background="@android:color/background_light"
@@ -83,7 +83,7 @@
                             android:layout_height="match_parent"
                             android:padding="8.0dp"
                             android:src="@drawable/ic_search"
-                            android:tint="?android:attr/textColorTertiary"
+                            android:tint="?android:attr/textColorTertiaryInverse"
                             android:foreground="?attr/selectableItemBackgroundBorderless"
                             android:background="@android:color/background_light"
                             android:clickable="true"
