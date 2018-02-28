@@ -1,6 +1,7 @@
 package com.matnar.app.android.flippi.barcode.provider;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.matnar.app.android.flippi.barcode.BarcodeProvider;
 
@@ -15,6 +16,8 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 public class OutpanBarcodeProvider extends BarcodeProvider {
+    private static final String TAG = "Flippi." + OutpanBarcodeProvider.class.getSimpleName();
+
     private static final String API_KEY = "8d4280e71e816efb4ad0edc9b8f25b2d";
 
     private WeakReference<Context> mContext;
@@ -32,7 +35,7 @@ public class OutpanBarcodeProvider extends BarcodeProvider {
             url = new URL("https://api.outpan.com/v2/products/" + barcode + "?apikey=" + API_KEY);
             connection = (HttpsURLConnection) url.openConnection();
             connection.setReadTimeout(10000);
-            connection.setConnectTimeout(10000);
+            connection.setConnectTimeout(1000);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuilder responseStrBuilder = new StringBuilder();
@@ -49,7 +52,7 @@ public class OutpanBarcodeProvider extends BarcodeProvider {
                 return new BarcodeInformation(super.format(name));
             }
         } catch (java.io.IOException | JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "lookup", e);
         } finally {
             if(connection != null) {
                 connection.disconnect();

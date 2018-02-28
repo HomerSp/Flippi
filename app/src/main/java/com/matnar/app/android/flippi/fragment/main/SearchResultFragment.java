@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -362,18 +363,20 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                                 mResults.add(r, new PriceCheckProvider.AdItem());
                             }
                         }
-                    } catch(IllegalArgumentException e) {
+                    } catch (IllegalArgumentException e) {
                         // Empty
                     }
 
                     mCurrentPage = page;
-                    if(page == 0) {
+                    if (page == 0) {
                         mCurrentPage = 1;
                     }
 
                     update();
 
                     mResultsAdapter.setHaveMoreItems(mCurrentPage < results.getPages());
+                } else if(!mIsBarcode) {
+                    update();
                 } else {
                     BarcodeProvider.getInformation(context, mQuery, new BarcodeProvider.BarcodeListener() {
                         @Override

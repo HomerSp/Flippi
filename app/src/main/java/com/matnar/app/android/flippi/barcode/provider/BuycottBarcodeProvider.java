@@ -1,6 +1,7 @@
 package com.matnar.app.android.flippi.barcode.provider;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.matnar.app.android.flippi.barcode.BarcodeProvider;
 
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 public class BuycottBarcodeProvider extends BarcodeProvider {
+    private static final String TAG = "Flippi." + BuycottBarcodeProvider.class.getSimpleName();
+
     private WeakReference<Context> mContext;
 
     public BuycottBarcodeProvider(WeakReference<Context> context) {
@@ -31,7 +34,7 @@ public class BuycottBarcodeProvider extends BarcodeProvider {
                 return new BarcodeInformation(title);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "lookup", e);
         }
 
         return null;
