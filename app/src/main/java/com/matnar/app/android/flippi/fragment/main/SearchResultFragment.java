@@ -368,9 +368,6 @@ public class SearchResultFragment extends MainActivity.MainActivityFragment {
                     }
 
                     mCurrentPage = page;
-                    if (page == 0) {
-                        mCurrentPage = 1;
-                    }
 
                     update();
 
