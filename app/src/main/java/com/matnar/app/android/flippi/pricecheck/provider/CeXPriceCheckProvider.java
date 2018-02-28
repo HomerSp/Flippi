@@ -4,12 +4,16 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.net.UrlQuerySanitizer;
+import android.util.JsonReader;
 import android.util.Log;
 
 import com.matnar.app.android.flippi.db.PriceCheckDatabase;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckProvider;
 import com.matnar.app.android.flippi.pricecheck.PriceCheckRegion;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -20,6 +24,8 @@ import java.lang.ref.WeakReference;
 
 public class CeXPriceCheckProvider extends PriceCheckProvider {
     private static final String TAG = "Flippi." + CeXPriceCheckProvider.class.getSimpleName();
+
+    private static final int PAGE_COUNT = 20;
 
     private WeakReference<Context> mContext;
     private PriceCheckRegion.Region mRegion;
@@ -35,74 +41,59 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
 
         try {
             Connection connection = Jsoup.connect(getSearchURL());
+            connection.ignoreContentType(true);
+            connection.method(Connection.Method.GET);
+            connection.header("Referer", getRefererURL());
+
+            connection.data("count", Integer.toString(PAGE_COUNT));
+            connection.data("firstRecord", Integer.toString(PAGE_COUNT * page));
             if(name != null) {
-                connection.data("stext", encode(name));
+                connection.data("q", encode(name));
             }
-            if(page > 0) {
-                connection.data("page", Integer.toString(page));
-            }
-            if(filter != null) {
-                connection.data("refinecat", encode(filter));
-                if(filterCategory != 0) {
-                    connection.data("CategoryID", Long.toString(filterCategory));
-                }
+            if(filterCategory != 0) {
+                connection.data("categoryId", Long.toString(filterCategory));
             }
             if(sort != null) {
-                connection.data("sortOn", encode(sort));
+                if(sort.endsWith("-asc")) {
+                    connection.data("sortBy", encode(sort.substring(0, sort.length() - 4)));
+                    connection.data("sortOrder", "asc");
+                } else if(sort.endsWith("-desc")) {
+                    connection.data("sortBy", encode(sort.substring(0, sort.length() - 5)));
+                    connection.data("sortOrder", "desc");
+                } else {
+                    connection.data("sortBy", encode(sort));
+                    connection.data("sortOrder", "desc");
+                }
+            } else {
+                connection.data("sortBy", "relevance");
+                connection.data("sortOrder", "desc");
             }
 
-            Document doc = connection.get();
-
-            Elements searchRecords = doc.select("div.searchRcrd");
-            if(searchRecords.size() == 1) {
-                Element searchRecord = searchRecords.first();
-                Elements rows = searchRecord.select("div.searchRecord");
-                if(rows.size() < 1) {
-                    // No results...
+            Connection.Response resp = connection.execute();
+            try {
+                JSONObject responseObj = new JSONObject(resp.body()).getJSONObject("response");
+                if(responseObj.isNull("data")) {
                     return new PriceCheckItems(1);
                 }
+                JSONObject dataObj = responseObj.getJSONObject("data");
+                JSONArray boxesArr = dataObj.getJSONArray("boxes");
 
-                Elements searchAreas = doc.select("div.searchArea");
-                if(searchAreas.size() != 1) {
-                    throw(new RuntimeException("Could not find searchArea element!"));
-                }
-
-                Elements pageElements = searchAreas.first().select("div.paginationLinks > span.paginationPages > ul > li");
-                if(pageElements.size() == 0) {
-                    throw(new RuntimeException("Could not find pagination elements"));
-                }
-
-                PriceCheckItems info = new PriceCheckItems(pageElements.size());
-                for(Element row: rows) {
-                    PriceCheckItem i = infoFromSearchRow(row, db);
-                    if(i == null) {
-                        db.close();
-                        throw(new RuntimeException("Could not obtain info from search row"));
+                PriceCheckItems info = new PriceCheckItems((int) Math.ceil(dataObj.getLong("totalRecords") / PAGE_COUNT));
+                for(int i = 0; i < boxesArr.length(); i++) {
+                    try {
+                        PriceCheckItem item = infoFromBoxRow(boxesArr.getJSONObject(i), db);
+                        info.add(item);
+                    } catch(JSONException e) {
+                        Log.e(TAG, "Could not retrieve JSON data from row", e);
                     }
-
-                    info.add(i);
                 }
 
                 db.close();
                 return info;
-            } else {
-                Elements productAreas = doc.select("div.productArea");
-                if(productAreas.size() != 1) {
-                    throw new RuntimeException("Could not find search or product area element");
-                }
+            } catch(JSONException e) {
+                Log.e(TAG, "Could not retrieve JSON data", e);
 
-                Element productArea = productAreas.first();
-
-                PriceCheckItems info = new PriceCheckItems(1);
-
-                PriceCheckItem i = infoFromProductPage(productArea, db);
-                if(i == null) {
-                    throw(new RuntimeException("Could not obtain info from product page"));
-                }
-
-                db.close();
-                info.add(i);
-                return info;
+                throw(new RuntimeException("Could not obtain info from product page"));
             }
         } catch (Exception e) {
             Log.e(TAG, "Error retrieving info", e);
@@ -123,12 +114,35 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
     private String getSearchURL() {
         switch(mRegion) {
             case RegionUK:
-                return "https://uk.webuy.com/search/";
+                return "https://wss2.cex.uk.webuy.io/v3/boxes";
             case RegionUS:
-                return "https://us.webuy.com/search/";
+                return "https://wss2.cex.us.webuy.io/v3/boxes";
         }
 
         return "";
+    }
+
+    private String getRefererURL() {
+        switch(mRegion) {
+            case RegionUK:
+                return "https://uk.webuy.com";
+            case RegionUS:
+                return "https://us.webuy.com";
+        }
+
+        return "";
+    }
+
+    private PriceCheckItem infoFromBoxRow(JSONObject boxRow, SQLiteDatabase db) throws JSONException {
+        String name = boxRow.getString("boxName");
+        String category = boxRow.getString("superCatFriendlyName") + " > " + boxRow.getString("categoryFriendlyName");
+        String image = boxRow.getJSONObject("imageUrls").getString("large");
+        String sku = boxRow.getString("boxId");
+        double sellPrice = boxRow.getDouble("sellPrice");
+        double buyPrice = boxRow.getDouble("cashPrice");
+        double buyVoucherPrice = boxRow.getDouble("exchangePrice");
+
+        return new PriceCheckItem(name, category, image, sku, sellPrice, buyPrice, buyVoucherPrice, getName(), mRegion, db);
     }
 
     private PriceCheckItem infoFromSearchRow(Element row, SQLiteDatabase db) {

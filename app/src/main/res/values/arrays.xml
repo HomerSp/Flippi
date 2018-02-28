@@ -22,10 +22,10 @@
     </string-array>
     <string-array name="search_sort_key">
         <item>reset</item>
-        <item>sellprice_asc</item>
-        <item>sellprice_desc</item>
-        <item>box_name_asc</item>
-        <item>box_name_desc</item>
+        <item>sellprice-asc</item>
+        <item>sellprice-desc</item>
+        <item>boxname-asc</item>
+        <item>boxname-desc</item>
     </string-array>
 
     <string-array name="favorites_sort">
@@ -39,11 +39,11 @@
     </string-array>
     <string-array name="favorites_sort_key">
         <item>reset</item>
-        <item>date_desc</item>
-        <item>date_asc</item>
-        <item>sellprice_asc</item>
-        <item>sellprice_desc</item>
-        <item>name_az</item>
-        <item>name_za</item>
+        <item>date-desc</item>
+        <item>date-asc</item>
+        <item>sellprice-asc</item>
+        <item>sellprice-desc</item>
+        <item>boxname-asc</item>
+        <item>boxname-desc</item>
     </string-array>
 </resources>

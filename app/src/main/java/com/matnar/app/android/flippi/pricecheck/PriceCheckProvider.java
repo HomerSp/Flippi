@@ -99,17 +99,17 @@ public abstract class PriceCheckProvider {
 
                     if(type != null) {
                         switch (type) {
-                            case "date_desc":
+                            case "date-desc":
                                 return -a.getDate().compareTo(b.getDate());
-                            case "date_asc":
+                            case "date-asc":
                                 return a.getDate().compareTo(b.getDate());
-                            case "sellprice_asc":
+                            case "sellprice-asc":
                                 return Double.valueOf(a.getSellPrice()).compareTo(b.getSellPrice());
-                            case "sellprice_desc":
+                            case "sellprice-desc":
                                 return Double.valueOf(b.getSellPrice()).compareTo(a.getSellPrice());
-                            case "name_az":
+                            case "boxname-asc":
                                 return a.getName().compareTo(b.getName());
-                            case "name_za":
+                            case "boxname-desc":
                                 return -a.getName().compareTo(b.getName());
                         }
                     }
