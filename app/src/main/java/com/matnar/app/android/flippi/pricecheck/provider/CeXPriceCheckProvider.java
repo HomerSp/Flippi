@@ -46,7 +46,7 @@ public class CeXPriceCheckProvider extends PriceCheckProvider {
             connection.header("Referer", getRefererURL());
 
             connection.data("count", Integer.toString(PAGE_COUNT));
-            connection.data("firstRecord", Integer.toString(PAGE_COUNT * page));
+            connection.data("firstRecord", Integer.toString(1 + (PAGE_COUNT * page)));
             if(name != null) {
                 connection.data("q", encode(name));
             }
